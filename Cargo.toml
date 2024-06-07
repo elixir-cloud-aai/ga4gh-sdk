@@ -8,6 +8,14 @@ license = "Apache-2.0"
 repository = "https://github.com/elixir-cloud-aai/ga4gh-sdk.git"
 
 [dependencies]
+serde = "^1.0"
+serde_derive = "^1.0"
+serde_json = "^1.0"
+url = "^2.2"
+uuid = { version = "^1.0", features = ["serde", "v4"] }
+[dependencies.reqwest]
+version = "^0.11"
+features = ["json", "multipart"]
 
 [lib]
 name = "my_project"

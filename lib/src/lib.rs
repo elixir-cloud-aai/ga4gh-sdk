@@ -1,14 +1,13 @@
-//! This is the main library file for the `lib` crate.
-#![warn(missing_docs)]
+#![allow(unused_imports)]
+
+#[macro_use]
+extern crate serde_derive;
+
+extern crate serde;
+extern crate serde_json;
+extern crate url;
+extern crate reqwest;
 
 
-// UNIT TESTING
-#[cfg(test)]
-mod tests {
-    // use super::*;
-
-    #[test]
-    fn test() {
-        // This test currently does nothing, it is just a placeholder.
-    }
-}
+pub mod service;
+pub mod tes;
