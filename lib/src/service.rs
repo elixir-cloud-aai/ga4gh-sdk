@@ -1,4 +1,4 @@
-use reqwest::Client;
+use reqwest::{Client, Response};
 use serde::Serialize;
 use serde_json::Value;
 use std::error::Error;
@@ -59,7 +59,7 @@ impl Service {
         data: Option<Value>,
         params: Option<Value>,
     ) -> Result<String, Box<dyn Error>> {
-        let mut local_var_req_builder = self.client.request(reqwest::Method::POST, endpoint);
+        let mut local_var_req_builder = self.client.request(method, endpoint);
 
         if let Some(ref local_var_user_agent) = self.username {
             local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());

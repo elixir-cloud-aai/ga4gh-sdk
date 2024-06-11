@@ -31,17 +31,16 @@ impl Tes {
     }
 
     /// Create a new task. The user provides a Task document, which the server uses as a basis and adds additional fields.
-    pub async fn create_task(&self, configuration: &configuration::Configuration, params: CreateTaskParams) -> Result<models::TesCreateTaskResponse, Error<CreateTaskError>> {
+    // pub async fn create_task(&self, configuration: &configuration::Configuration, params: CreateTaskParams) -> Result<models::TesCreateTaskResponse, Error<CreateTaskError>> {
+    pub async fn create_task(&self, configuration: &configuration::Configuration, params: CreateTaskParams) {
         let local_var_configuration = configuration;
 
         // unbox the parameters
         let body = params.body;
         
-        let local_var_client = &local_var_configuration.client;
-
         let local_var_uri_str = format!("{}/tasks", local_var_configuration.base_path);
         let endpoint = local_var_uri_str.as_str();
-        let mut response_ = self.service.request(reqwest::Method::POST, endpoint, Some(serde_json::to_value(body).unwrap()), None);
+        let response = self.service.request(reqwest::Method::POST, endpoint, Some(serde_json::to_value(body).unwrap()), None).await;
 
 
         // if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
@@ -53,22 +52,20 @@ impl Tes {
         // }
 
 
-        // This is not correct, I am working on this
-        match self.service.request(reqwest::Method::POST, endpoint, Some(serde_json::to_value(body).unwrap()), None).await {
-            Ok(response_text) => {
-                match serde_json::from_str::<TesCreateTaskResponse>(&response_text) {
-                    Ok(parsed_response) => Ok(parsed_response),
-                    Err(_) => Err(Error::new(CreateTaskError::UnknownValue(json!({
-                        "error": "Failed to parse response",
-                        "response": response_text
-                    })))),
-                }
-            }
-            Err(e) => Err(Error::new(CreateTaskError::UnknownValue(json!({
-                "error": e.to_string(),
-                "cause": "Request execution failed"
-            })))),
+        
+        match response {
+            Ok(content) => {
+                // Handle the successful response
+                println!("Success: {}", content);
+                // You can also process the content as needed
+            },
+            Err(e) => {
+                // Handle the error
+                eprintln!("Error: {}", e);
+                // You can also process the error as needed
+            },
         }
+
     }
 
  
