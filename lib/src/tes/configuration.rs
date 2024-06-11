@@ -47,7 +47,6 @@ impl Default for Configuration {
             oauth_access_token: None,
             bearer_access_token: None,
             api_key: None,
-
         }
     }
 }
