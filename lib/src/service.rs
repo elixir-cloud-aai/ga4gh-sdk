@@ -82,3 +82,56 @@ impl Service {
     }
 
 }
+#[cfg(test)]
+mod tests {
+    use crate::service::Service;
+    use reqwest::Method;
+    use serde_json::json;
+    use mockito::{mock, Matcher};
+
+    #[tokio::test]
+    async fn test_request_success() {
+        let base_url = &mockito::server_url();
+        let _m = mock("GET", "/test")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"message": "success"}"#)
+            .create();
+
+        let service = Service::new(base_url.clone(), None, None, None);
+
+        let response = service.request(
+            Method::GET,
+            &format!("{}/test", base_url),
+            None,
+            None,
+        ).await;
+
+        assert!(response.is_ok());
+        let body = response.unwrap();
+        assert_eq!(body, r#"{"message": "success"}"#);
+    }
+
+    #[tokio::test]
+    async fn test_request_failure() {
+        let base_url = &mockito::server_url();
+        let _m = mock("GET", "/test")
+            .with_status(404)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"message": "not found"}"#)
+            .create();
+
+        let service = Service::new(base_url.clone(), None, None, None);
+
+        let response = service.request(
+            Method::GET,
+            &format!("{}/test", base_url),
+            None,
+            None,
+        ).await;
+
+        assert!(response.is_err());
+        let error = response.err().unwrap();
+        assert_eq!(error.to_string(), r#"{"message": "not found"}"#);
+    }
+}
