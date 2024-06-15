@@ -70,3 +70,49 @@ impl Tes {
 
  
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tes::configuration::Configuration;
+    use crate::tes::tes::reqwest::Client;
+    use crate::tes::models::TesTask;
+
+    #[tokio::test]
+    async fn test_create_task() {
+        let client_tes = Client::new();
+
+        // Define the configuration
+        let config = Configuration {
+            base_path: "http://localhost:8000".to_string(),
+            user_agent: None,
+            client: client_tes.clone(),
+            basic_auth: None,
+            oauth_access_token: None,
+            bearer_access_token: None,
+            api_key: None
+        };
+
+        // Load the TesTask JSON file
+        let task_json = std::fs::read_to_string("/home/aarav/dev/ga4gh-sdk/lib/sample/grape.tes").expect("Unable to read file");
+        let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
+
+        // Create the service and Tes instance
+        let service = Service { 
+            base_url: "http://localhost:8000".to_string(),
+            client: client_tes.clone(),
+            username: None,
+            password: None,
+            token: None,
+
+         };
+        let tes = Tes::new(service);
+
+        // Create the parameters
+        let params = CreateTaskParams { body: task };
+
+        // Call the create_task method
+        let result = tes.create_task(&config, params).await;
+        println!("{:?}", result);
+    }
+}

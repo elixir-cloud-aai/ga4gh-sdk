@@ -34,11 +34,11 @@ impl Error for MyError {}
 
 #[derive(Debug)]
 pub struct Service {
-    base_url: String,
-    client: Client,
-    username: Option<String>,
-    password: Option<String>,
-    token: Option<String>,
+    pub base_url: String,
+    pub client: Client,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub token: Option<String>,
 }
 
 impl Service {
