@@ -1,7 +1,7 @@
 use reqwest;
 
 use crate::{task_execution_service::{models, ResponseContent}, transport};
-use super::{Error, configuration};
+use super::Error;
 use crate::transport::Transport;
 use serde_json::json;
 use crate::task_execution_service::models::TesCreateTaskResponse;
@@ -33,7 +33,7 @@ impl<'a> Tes<'a> {
     }
 
     /// Create a new task. The user provides a Task document, which the server uses as a basis and adds additional fields.
-    // pub async fn create(&self, configuration: &configuration::Configuration, params: CreateTaskParams) -> Result<models::TesCreateTaskResponse, Error<CreateTaskError>> {
+    // pub async fn create(&self, transport: &transport::Transport, params: CreateTaskParams) -> Result<models::TesCreateTaskResponse, Error<CreateTaskError>> {
     pub async fn create(&self, transport: &transport::Transport, params: CreateTaskParams) {
         let local_var_configuration = transport;
 
@@ -86,7 +86,6 @@ mod tests {
     use reqwest::header::TRAILER;
 
     use super::*;
-    use crate::task_execution_service::configuration::Configuration;
     use crate::task_execution_service::tes::reqwest::Client;
     use crate::task_execution_service::models::TesTask;
 
@@ -105,9 +104,8 @@ mod tests {
             api_key: None,
             password: None
         };
-
         // Load the TesTask JSON file
-        let task_json = std::fs::read_to_string("/home/aarav/dev/ga4gh-sdk/lib/sample/grape.tes").expect("Unable to read file");
+        let task_json = std::fs::read_to_string("lib/sample/grape.tes").expect("Unable to read file");
         let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
 
         
