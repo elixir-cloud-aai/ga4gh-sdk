@@ -9,5 +9,7 @@ extern crate url;
 extern crate reqwest;
 
 
+pub mod tes;
 pub mod transport;
-pub mod task_execution_service;
+pub mod serviceinfo;
+pub mod configuration;
