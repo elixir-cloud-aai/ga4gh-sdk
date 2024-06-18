@@ -3,17 +3,17 @@ use serde::Serialize;
 use serde_json::Value;
 use std::error::Error;
 use std::fmt;
-use crate::configuration::ServiceConfiguration;
+use crate::configuration::Configuration;
 
 // note: could implement custom certs handling, such as in-TEE generated ephemerial certs
 
 pub struct Transport {
-    config: ServiceConfiguration,
+    config: Configuration,
     client: reqwest::Client,
 }
 
 impl Transport {
-    pub fn new(config: &ServiceConfiguration) -> Self {
+    pub fn new(config: &Configuration) -> Self {
         Transport {
             config: config.clone(),
             client: Client::new(),
@@ -84,54 +84,58 @@ impl Transport {
 
 #[cfg(test)]
 mod tests {
-    // use crate::transport::Transport;
-    // use reqwest::Method;
-    // use serde_json::json;
-    // use mockito::{mock, Matcher};
+    use crate::{configuration::Configuration, transport::Transport};
+    use reqwest::Method;
+    use serde_json::json;
+    use mockito::{mock, Matcher};
 
-    // #[tokio::test]
-    // async fn test_request_success() {
-    //     let base_url = &mockito::server_url();
-    //     let _m = mock("GET", "/test")
-    //         .with_status(200)
-    //         .with_header("content-type", "application/json")
-    //         .with_body(r#"{"message": "success"}"#)
-    //         .create();
+    #[tokio::test]
+    async fn test_request_success() {
+        let base_url = &mockito::server_url();
+        let _m = mock("GET", "/test")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"message": "success"}"#)
+            .create();
 
-    //     let transport = Transport::new(base_url.clone(), None, None, None);
+        let config= Configuration::new(base_url.clone(), None, None);
 
-    //     let response = transport.request(
-    //         Method::GET,
-    //         &format!("{}/test", base_url),
-    //         None,
-    //         None,
-    //     ).await;
+        let transport = Transport::new(&config.clone());
 
-    //     assert!(response.is_ok());
-    //     let body = response.unwrap();
-    //     assert_eq!(body, r#"{"message": "success"}"#);
-    // }
+        let response = transport.request(
+            Method::GET,
+            &format!("{}/test", base_url),
+            None,
+            None,
+        ).await;
 
-    // #[tokio::test]
-    // async fn test_request_failure() {
-    //     let base_url = &mockito::server_url();
-    //     let _m = mock("GET", "/test")
-    //         .with_status(404)
-    //         .with_header("content-type", "application/json")
-    //         .with_body(r#"{"message": "not found"}"#)
-    //         .create();
+        assert!(response.is_ok());
+        let body = response.unwrap();
+        assert_eq!(body, r#"{"message": "success"}"#);
+    }
 
-    //     let transport = Transport::new(base_url.clone(), None, None, None);
+    #[tokio::test]
+    async fn test_request_failure() {
+        let base_url = &mockito::server_url();
+        let _m = mock("GET", "/test")
+            .with_status(404)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"message": "not found"}"#)
+            .create();
 
-    //     let response = transport.request(
-    //         Method::GET,
-    //         &format!("{}/test", base_url),
-    //         None,
-    //         None,
-    //     ).await;
+        let config= Configuration::new(base_url.clone(), None, None);
 
-    //     assert!(response.is_err());
-    //     let error = response.err().unwrap();
-    //     assert_eq!(error.to_string(), r#"{"message": "not found"}"#);
-    // }
+        let transport = Transport::new(&config.clone());
+
+        let response = transport.request(
+            Method::GET,
+            &format!("{}/test", base_url),
+            None,
+            None,
+        ).await;
+
+        assert!(response.is_err());
+        let error = response.err().unwrap();
+        assert_eq!(error.to_string(), r#"{"message": "not found"}"#);
+    }
 }

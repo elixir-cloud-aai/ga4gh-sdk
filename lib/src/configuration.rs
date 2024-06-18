@@ -1,7 +1,7 @@
 
 
 #[derive(Debug, Clone)]
-pub struct ServiceConfiguration {
+pub struct Configuration {
     pub base_path: String,
     pub user_agent: Option<String>,
     pub basic_auth: Option<BasicAuth>,
@@ -20,9 +20,16 @@ pub struct ApiKey {
 }
 
 
-impl ServiceConfiguration {
-    pub fn new() -> ServiceConfiguration {
-        ServiceConfiguration::default()
+impl Configuration {
+    pub fn new(base_path: String, user_agent: Option<String>, oauth_access_token: Option<String>) -> Self {
+        Configuration {
+            base_path,
+            user_agent,
+            basic_auth: None,
+            oauth_access_token,
+            bearer_access_token: None,
+            api_key: None,
+        }
     }
 
     pub fn set_base_path(&mut self, base_path: &str) -> &mut Self {
@@ -31,9 +38,9 @@ impl ServiceConfiguration {
     }
 }
 
-impl Default for ServiceConfiguration {
+impl Default for Configuration {
     fn default() -> Self {
-        ServiceConfiguration {
+        Configuration {
             base_path: "localhost".to_owned(),
             user_agent: Some("GA4GH SDK".to_owned()),
             basic_auth: None,

@@ -2,7 +2,7 @@ pub mod models;
 use crate::transport::Transport;
 use serde_json::json;
 use crate::serviceinfo::ServiceInfo;
-use crate::configuration::ServiceConfiguration;
+use crate::configuration::Configuration;
 use crate::tes::models::TesTask;
 use crate::tes::models::TesCreateTaskResponse;
 use crate::tes::models::TesState;
@@ -27,14 +27,14 @@ impl Task {
 }
 
 pub struct TES {
-    config: ServiceConfiguration,
+    config: Configuration,
     service_info: ServiceInfo,
     transport: Transport,
 }
 // *** see question above
 
 impl TES {
-    pub fn new(config: &ServiceConfiguration) -> Self {
+    pub fn new(config: &Configuration) -> Self {
         // todo double check that it's really a TES using serviceinfo
         TES {
             config: config.clone(),
@@ -95,12 +95,12 @@ impl TES {
 #[cfg(test)]
 mod tests {
     use crate::tes::TES;
-    use crate::configuration::ServiceConfiguration;
+    use crate::configuration::Configuration;
     use crate::tes::models::TesTask;
     use crate::tes::models::TesCreateTaskResponse;
 
     async fn create_task() -> Result<String, Box<dyn std::error::Error>> {
-        let mut config = ServiceConfiguration::default();
+        let mut config = Configuration::default();
         config.set_base_path("http://localhost:8080"); // expecting TES/Funnel, TODO autorun
         let tes = TES::new(&config);
     
