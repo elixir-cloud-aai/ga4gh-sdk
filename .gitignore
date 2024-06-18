@@ -1,3 +1,7 @@
 Cargo.lock
+openapitools.json
+package.json
+package-lock.json
+node_modules/
 target/
 .vscode

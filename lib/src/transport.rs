@@ -8,8 +8,8 @@ use crate::configuration::Configuration;
 // note: could implement custom certs handling, such as in-TEE generated ephemerial certs
 
 pub struct Transport {
-    config: Configuration,
-    client: reqwest::Client,
+    pub config: Configuration,
+    pub client: reqwest::Client,
 }
 
 impl Transport {
