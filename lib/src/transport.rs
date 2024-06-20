@@ -6,7 +6,7 @@ use std::fmt;
 use crate::configuration::Configuration;
 
 // note: could implement custom certs handling, such as in-TEE generated ephemerial certs
-
+#[derive(Clone)]
 pub struct Transport {
     pub config: Configuration,
     pub client: reqwest::Client,
