@@ -64,7 +64,7 @@ impl TES {
             },
             Err(e) => {
                 log::error!("Error: {}", e);
-                Err(e.into())
+                Err(e)
             },
         }
     }
@@ -89,7 +89,7 @@ impl TES {
             },
             Err(e) => {
                 log::error!("Error: {}", e);
-                Err(e.into())
+                Err(e)
             },
         }
     }
