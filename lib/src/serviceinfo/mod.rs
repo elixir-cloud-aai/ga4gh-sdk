@@ -44,6 +44,7 @@ mod tests {
     use super::*;
     use std::ptr::eq;
     use mockall::predicate::*;
+    use tokio;
 
     #[tokio::test]
     async fn test_get_service_info() {
@@ -60,6 +61,25 @@ mod tests {
         // assert!(result.is_ok());
         // assert_eq!(result.unwrap().id, "test");
         // assert_eq!(result.unwrap().name, "test");
+    }
+     #[tokio::test]
+    async fn test_get_service_info_from_funnel() {
+        // Initialize the Transport struct to point to your local Funnel server
+        let config = Configuration::new("http://localhost:8000".to_string(), None, None);
+        let transport = Transport::new(&config);
+
+        // Create a ServiceInfo instance using the local Transport
+        let service_info = ServiceInfo::new(transport);
+
+        // Call get_service_info and print the result
+        match service_info.get_service_info().await {
+            Ok(service) => {
+                println!("Service Info: {:?}", service);
+            },
+            Err(e) => {
+                println!("Failed to get service info: {}", e);
+            },
+        }
     }
 }
 
