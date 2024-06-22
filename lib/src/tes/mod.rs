@@ -1,5 +1,7 @@
 pub mod models;
 use crate::transport::Transport;
+use crate::serviceinfo::models::Service;
+use models::service;
 use reqwest::Response;
 use serde::ser;
 use serde_json::json;
@@ -30,25 +32,41 @@ impl Task {
 
 pub struct TES {
     config: Configuration,
-    service_info: ServiceInfo,
+    service: Result<Service, Box<dyn std::error::Error>>,
     transport: Transport,
 }
 // *** see question above
 
 impl TES {
-    pub async fn new(config: &Configuration) -> Self {
-    let transport = &Transport::new(config);
-    let service_info = &ServiceInfo::new(transport.clone());
-    let resp = service_info.get_service_info().await;
-    assert_eq!(resp.unwrap().r#type.artifact, "tes");
-    TES {
-        config: config.clone(),
-        transport: transport.clone(),
-        service_info: service_info.clone(),
+    pub async fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
+        let transport = &Transport::new(config);
+        let service_info = &ServiceInfo::new(transport.clone());
+        let resp = service_info.get_service_info().await;
+        // println!("artifact: {}",resp.clone().unwrap().r#type.artifact);
+        let instance = TES {
+            config: config.clone(),
+            transport: transport.clone(),
+            service: resp,
+        };
+
+        if instance.check() {
+            Ok(instance)
+        } else {
+            Err("The endpoint is not an instance of TES".into())
+        }
     }
-}
+    fn check(&self) -> bool {
+        let resp = &self.service;
+        return resp.as_ref().unwrap().r#type.artifact == "tes"
+    }
 
     pub async fn create(&self, task: TesTask/*, params: models::TesTask*/) -> Result<TesCreateTaskResponse, Box<dyn std::error::Error>> {
+        // First, check if the service is of TES class
+        if !self.check() {
+                // If check fails, log an error and return an Err immediately
+                log::error!("Service check failed");
+                return Err("Service check failed".into());
+        }
         // todo: version in url based on serviceinfo or user config
         let url = format!("{}/ga4gh/tes/v1/tasks", self.config.base_path);
         let response = self.transport.post(&url, json!(task)).await;
@@ -112,7 +130,7 @@ mod tests {
         let task_json = std::fs::read_to_string("./lib/sample/grape.tes").expect("Unable to read file");
         let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
     
-        let task = tes.create(task).await?;
+        let task = tes?.create(task).await?;
         Ok(task.id)
     }
 

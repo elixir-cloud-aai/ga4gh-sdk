@@ -1,4 +1,4 @@
-mod models;
+pub(crate) mod models;
 
 use crate::transport::Transport;
 use crate::configuration::Configuration;
