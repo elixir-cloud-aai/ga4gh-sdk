@@ -6,20 +6,107 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+    env:
+      OPENSSL_DIR: /usr/include/openssl
+      OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
+      OPENSSL_INCLUDE_DIR: /usr/include/openssl
 
     steps:
-    - uses: actions/checkout@v2
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cargo
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-cargo-
+
+    - name: Cache Rust build output
+      uses: actions/cache@v2
+      with:
+        path: target
+        key: ${{ runner.os }}-build-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-build-
+
+    - name: Cache Node.js dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-
+
+    - name: Cache Go modules
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: ${{ runner.os }}-go-
+
+    - name: Cache Funnel dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/funnel/build
+        key: ${{ runner.os }}-funnel-${{ hashFiles('**/funnel/*') }}
+        restore-keys: ${{ runner.os }}-funnel-
+
     - name: Install Rust
-      run: rustup update stable
+      run: |
+        apt-get update
+        apt-get install -y curl git build-essential libssl-dev 
+        if ! command -v rustup &> /dev/null # might not be installed while executing using `act`
+        then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            . $HOME/.cargo/env
+        fi
+        rustup update stable
+    - name: Install Node.js # required for build-models.sh
+      run: |
+        REQUIRED_NODE_VERSION=22
+        if command -v node &> /dev/null; then
+            curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh
+            bash nodesource_setup.sh
+            apt-get install -y nodejs
+        fi
+    - name: Set up JDK 11 # required for build-models.sh
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '^1.22'  
+    - name: Install Funnel
+      run: |
+          if [ -d "funnel" ]; then rm -Rf funnel; fi
+          git clone https://github.com/ohsu-comp-bio/funnel.git
+          cd funnel && make && make install && cd ..
+    - uses: actions/checkout@v2 # checkout the repository
     - name: Build models
-      run: ./build-models.sh
+      run: |
+        . $HOME/.cargo/env
+        bash ./build-models.sh
     - name: Build
-      run: cargo build --verbose
-    - name: Run custom tests
-      run: ./run-tests.sh
+      run: |
+        . $HOME/.cargo/env
+        cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: |
+        . $HOME/.cargo/env
+        bash ./run-tests.sh
     - name: Lint
-      run: cargo clippy -- -D warnings
+      run: |
+        . $HOME/.cargo/env
+        cargo clippy -- -D warnings
     - name: Format
-      run: cargo fmt -- --check
+      run: |
+        . $HOME/.cargo/env
+        cargo fmt -- --check

@@ -8,4 +8,4 @@ target/
 lib/src/**/models/
 *.log
 funnel-work-dir/
-
+funnel/

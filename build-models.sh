@@ -52,10 +52,16 @@ generate_openapi_models() {
     # Remove the openapitools.json file
     rm -f ./openapitools.json
     
+    echo "TEMP_OUTPUT_DIR is $TEMP_OUTPUT_DIR"
     # Modify the import statements in each generated file
     for file in $(find "$TEMP_OUTPUT_DIR" -name '*.rs'); do
-        # sed -i '' "s/use crate::models;/use crate::$API_NAME::models;/" "$file"
-        sed -i '' "s/use crate::models;/#![allow(unused_imports)]\nuse crate::$API_NAME::models;/" "$file"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS (BSD) sed syntax
+            sed -i '' "s/use crate::models;/#![allow(unused_imports)]\nuse crate::$API_NAME::models;/" "$file"
+        else
+            # Linux (GNU) sed syntax
+            sed -i "s/use crate::models;/#![allow(unused_imports)]\nuse crate::$API_NAME::models;/" "$file"
+        fi
     done
 
     rm -rf "$DESTINATION_DIR/models"
