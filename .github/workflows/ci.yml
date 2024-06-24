@@ -11,8 +11,12 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install Rust
       run: rustup update stable
+    - name: Build models
+      run: ./build-models.sh
     - name: Build
       run: cargo build --verbose
+    - name: Run custom tests
+      run: ./run-tests.sh
     - name: Run tests
       run: cargo test --verbose
     - name: Lint

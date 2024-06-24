@@ -54,7 +54,8 @@ generate_openapi_models() {
     
     # Modify the import statements in each generated file
     for file in $(find "$TEMP_OUTPUT_DIR" -name '*.rs'); do
-        sed -i '' "s/use crate::models;/use crate::$API_NAME::models;/" "$file"
+        # sed -i '' "s/use crate::models;/use crate::$API_NAME::models;/" "$file"
+        sed -i '' "s/use crate::models;/#![allow(unused_imports)]\nuse crate::$API_NAME::models;/" "$file"
     done
 
     rm -rf "$DESTINATION_DIR/models"

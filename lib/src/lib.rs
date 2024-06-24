@@ -1,13 +1,8 @@
-#![allow(unused_imports)]
-
 #[macro_use]
 extern crate serde_derive;
 
-extern crate serde;
-extern crate serde_json;
-extern crate url;
-extern crate reqwest;
-
+#[cfg(test)]
+mod test_utils;
 
 pub mod tes;
 pub mod transport;
