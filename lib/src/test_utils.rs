@@ -1,7 +1,7 @@
+use log::info;
 use std::env;
 use std::process::Command;
 use std::str;
-use log::info;
 use std::sync::Once;
 
 pub const FUNNEL_HOST: &str = "http://localhost";

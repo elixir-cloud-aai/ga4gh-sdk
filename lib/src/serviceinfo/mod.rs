@@ -1,6 +1,6 @@
 pub mod models;
-use crate::transport::Transport;
 use crate::configuration::Configuration;
+use crate::transport::Transport;
 
 #[derive(Clone)]
 pub struct ServiceInfo {
@@ -19,31 +19,26 @@ impl ServiceInfo {
     pub async fn get(&self) -> Result<models::Service, Box<dyn std::error::Error>> {
         let response = self.transport.get("/service-info", None).await;
         match response {
-            Ok(response_body) => {
-                match serde_json::from_str::<models::Service>(&response_body) {
-                    Ok(tes_create_task_response) => Ok(tes_create_task_response),
-                    Err(e) => {
-                        log::error!("Failed to deserialize response: {}", e);
-                        Err("Failed to deserialize response".into())
-                    },
+            Ok(response_body) => match serde_json::from_str::<models::Service>(&response_body) {
+                Ok(tes_create_task_response) => Ok(tes_create_task_response),
+                Err(e) => {
+                    log::error!("Failed to deserialize response: {}", e);
+                    Err("Failed to deserialize response".into())
                 }
             },
             Err(e) => {
                 log::error!("Error: {}", e);
                 Err(e)
-            },
+            }
         }
     }
-
 }
-
-
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::{setup, ensure_funnel_running};
-    use crate::serviceinfo::ServiceInfo;
     use crate::configuration::Configuration;
+    use crate::serviceinfo::ServiceInfo;
+    use crate::test_utils::{ensure_funnel_running, setup};
     use tokio;
 
     #[tokio::test]
@@ -62,7 +57,7 @@ mod tests {
         // assert_eq!(result.unwrap().id, "test");
         // assert_eq!(result.unwrap().name, "test");
     }
-     #[tokio::test]
+    #[tokio::test]
     async fn test_get_service_info_from_funnel() {
         setup();
         let mut config = Configuration::default();
@@ -74,10 +69,10 @@ mod tests {
         match service_info.get().await {
             Ok(service) => {
                 println!("Service Info: {:?}", service);
-            },
+            }
             Err(e) => {
                 println!("Failed to get service info: {}", e);
-            },
+            }
         }
     }
 }

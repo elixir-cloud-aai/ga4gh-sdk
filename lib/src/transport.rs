@@ -1,8 +1,8 @@
+use crate::configuration::Configuration;
+use log::error;
 use reqwest::Client;
 use serde_json::Value;
 use std::error::Error;
-use crate::configuration::Configuration;
-use log::error;
 
 // note: could implement custom certs handling, such as in-TEE generated ephemerial certs
 #[derive(Clone)]
@@ -29,13 +29,23 @@ impl Transport {
         let full_url = format!("{}{}", self.config.base_path, endpoint);
         let url = reqwest::Url::parse(&full_url);
         if url.is_err() {
-            error!("Invalid endpoint (shouldn't contain base url): {}", endpoint);
-            return Err(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid endpoint")));
+            error!(
+                "Invalid endpoint (shouldn't contain base url): {}",
+                endpoint
+            );
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "Invalid endpoint",
+            )));
         }
 
-        let resp = self.client
+        let resp = self
+            .client
             .request(method, &full_url)
-            .header(reqwest::header::USER_AGENT, self.config.user_agent.clone().unwrap_or_default())
+            .header(
+                reqwest::header::USER_AGENT,
+                self.config.user_agent.clone().unwrap_or_default(),
+            )
             .json(&data)
             .query(&params)
             .send()
@@ -47,24 +57,35 @@ impl Transport {
         if status.is_success() {
             Ok(content)
         } else {
-            Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, content)))
+            Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                content,
+            )))
         }
     }
 
-    pub async fn get(&self, endpoint: &str, params: Option<Value>) -> Result<String, Box<dyn Error>> {
-        self.request(reqwest::Method::GET, endpoint, None, params).await
+    pub async fn get(
+        &self,
+        endpoint: &str,
+        params: Option<Value>,
+    ) -> Result<String, Box<dyn Error>> {
+        self.request(reqwest::Method::GET, endpoint, None, params)
+            .await
     }
 
     pub async fn post(&self, endpoint: &str, data: Value) -> Result<String, Box<dyn Error>> {
-        self.request(reqwest::Method::POST, endpoint, Some(data), None).await
+        self.request(reqwest::Method::POST, endpoint, Some(data), None)
+            .await
     }
 
     pub async fn put(&self, endpoint: &str, data: Value) -> Result<String, Box<dyn Error>> {
-        self.request(reqwest::Method::PUT, endpoint, Some(data), None).await
+        self.request(reqwest::Method::PUT, endpoint, Some(data), None)
+            .await
     }
 
     pub async fn delete(&self, endpoint: &str) -> Result<String, Box<dyn Error>> {
-        self.request(reqwest::Method::DELETE, endpoint, None, None).await
+        self.request(reqwest::Method::DELETE, endpoint, None, None)
+            .await
     }
 
     // other HTTP methods can be added here
@@ -72,8 +93,8 @@ impl Transport {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::setup;
     use crate::configuration::Configuration;
+    use crate::test_utils::setup;
     use crate::transport::Transport;
     use mockito::mock;
 
@@ -86,7 +107,7 @@ mod tests {
         let _m = mock("GET", "/test")
             .with_status(200)
             .with_header("content-type", "application/json")
-            .with_body(r#"{"message": "success"}"#) 
+            .with_body(r#"{"message": "success"}"#)
             .create();
 
         let config = Configuration::new(base_url.clone(), None, None);

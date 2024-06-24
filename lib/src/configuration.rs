@@ -1,5 +1,3 @@
-
-
 #[derive(Debug, Clone)]
 pub struct Configuration {
     pub base_path: String,
@@ -19,9 +17,12 @@ pub struct ApiKey {
     pub key: String,
 }
 
-
 impl Configuration {
-    pub fn new(base_path: String, user_agent: Option<String>, oauth_access_token: Option<String>) -> Self {
+    pub fn new(
+        base_path: String,
+        user_agent: Option<String>,
+        oauth_access_token: Option<String>,
+    ) -> Self {
         Configuration {
             base_path,
             user_agent,
