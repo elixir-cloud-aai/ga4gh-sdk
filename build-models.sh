@@ -20,7 +20,7 @@ get_git_repo_name() {
 # fi
 
 # cd $(git rev-parse --show-toplevel)
-# SCRIPT_DIR="$(pwd)"
+SCRIPT_DIR="$(pwd)"
 
 generate_openapi_models() {
     # Parameters
