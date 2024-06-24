@@ -12,10 +12,12 @@ use crate::tes::models::TesState;
 // ***
 // should TES.create return Task? which in turn can do status() and other existing-task-related stuff
 // instead of TES.status(task_id) we could do task.status()
+#[allow(dead_code)]
 pub struct Task {
     id: String,
 }
 
+#[allow(dead_code)]
 impl Task {
     pub fn new(id: String) -> Self {
         Task {
@@ -29,7 +31,8 @@ impl Task {
 }
 
 pub struct TES {
-    config: Configuration,
+    #[allow(dead_code)]
+    config: Configuration, // not used yet
     service: Result<Service, Box<dyn std::error::Error>>,
     transport: Transport,
 }
