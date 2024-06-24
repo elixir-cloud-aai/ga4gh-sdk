@@ -13,14 +13,14 @@ get_git_repo_name() {
     echo "$repo_name"
 }
 
-repo_name=$(get_git_repo_name)
-if [ "$repo_name" != "ga4gh-sdk" ]; then
-    echo "This script must be run from the 'ga4gh-sdk' repository."
-    exit 1
-fi
+# repo_name=$(get_git_repo_name)
+# if [ "$repo_name" != "ga4gh-sdk" ]; then
+#     echo "This script must be run from the 'ga4gh-sdk' repository."
+#     exit 1
+# fi
 
-cd $(git rev-parse --show-toplevel)
-SCRIPT_DIR="$(pwd)"
+# cd $(git rev-parse --show-toplevel)
+# SCRIPT_DIR="$(pwd)"
 
 generate_openapi_models() {
     # Parameters
