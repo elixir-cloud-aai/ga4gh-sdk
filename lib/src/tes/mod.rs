@@ -12,23 +12,23 @@ use crate::tes::models::TesState;
 // ***
 // should TES.create return Task? which in turn can do status() and other existing-task-related stuff
 // instead of TES.status(task_id) we could do task.status()
-#[allow(dead_code)]
-pub struct Task {
-    id: String,
-}
+// #[allow(dead_code)]
+// pub struct Task {
+//     id: String,
+// }
 
-#[allow(dead_code)]
-impl Task {
-    pub fn new(id: String) -> Self {
-        Task {
-            id: id,
-        }
-    }
+// #[allow(dead_code)]
+// impl Task {
+//     pub fn new(id: String) -> Self {
+//         Task {
+//             id: id,
+//         }
+//     }
 
-    pub fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
-        Ok(TesState::Running)
-    }
-}
+//     pub fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
+//         Ok(TesState::Running)
+//     }
+// }
 
 pub struct TES {
     #[allow(dead_code)]
