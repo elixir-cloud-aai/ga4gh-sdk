@@ -23,8 +23,12 @@ impl Task {
         }
     }
 
-    pub fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
-        Ok(TesState::Running)
+    pub async fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
+        let task_id=&self.id;
+        let url = format!("/ga4gh/tes/v1/tasks/{}", task_id.clone());
+        let config = Configuration::new(url, None, None);
+        let tes=TES::new(&config).await;
+        tes?.status(&task_id.clone(), "BASIC").await
     }
 }
 
