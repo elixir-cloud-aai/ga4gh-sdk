@@ -2,7 +2,6 @@ pub mod models;
 use crate::configuration::Configuration;
 use crate::serviceinfo::models::Service;
 use crate::serviceinfo::ServiceInfo;
-use crate::tes::models::TesCreateTaskResponse;
 use crate::tes::models::TesState;
 use crate::tes::models::TesTask;
 use crate::transport::Transport;
@@ -12,23 +11,22 @@ use serde_json::json;
 // ***
 // should TES.create return Task? which in turn can do status() and other existing-task-related stuff
 // instead of TES.status(task_id) we could do task.status()
-// #[allow(dead_code)]
-// pub struct Task {
-//     id: String,
-// }
+#[derive(Serialize, Deserialize)]
+pub struct Task {
+    id: String,
+}
 
-// #[allow(dead_code)]
-// impl Task {
-//     pub fn new(id: String) -> Self {
-//         Task {
-//             id: id,
-//         }
-//     }
+impl Task {
+    pub fn new(id: String) -> Self {
+        Task {
+            id,
+        }
+    }
 
-//     pub fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
-//         Ok(TesState::Running)
-//     }
-// }
+    pub fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
+        Ok(TesState::Running)
+    }
+}
 
 pub struct TES {
     #[allow(dead_code)]
@@ -65,7 +63,7 @@ impl TES {
     pub async fn create(
         &self,
         task: TesTask, /*, params: models::TesTask*/
-    ) -> Result<TesCreateTaskResponse, Box<dyn std::error::Error>> {
+    ) -> Result<Task, Box<dyn std::error::Error>> {
         // First, check if the service is of TES class
         if !self.check() {
             // If check fails, log an error and return an Err immediately
@@ -79,7 +77,7 @@ impl TES {
             .await;
         match response {
             Ok(response_body) => {
-                match serde_json::from_str::<TesCreateTaskResponse>(&response_body) {
+                match serde_json::from_str::<Task>(&response_body) {
                     Ok(tes_create_task_response) => Ok(tes_create_task_response),
                     Err(e) => {
                         log::error!("Failed to deserialize response: {}", e);
@@ -98,7 +96,7 @@ impl TES {
     pub async fn status(
         &self,
         task_id: &str,
-        view: &str,
+        view: &str,// 'view' controls the level of detail in the response. Expected values: "MINIMAL","BASIC" or "FULL".
     ) -> Result<TesState, Box<dyn std::error::Error>> {
         // ?? move to Task::status()
         // todo: version in url based on serviceinfo or user config
@@ -129,7 +127,8 @@ mod tests {
     use crate::configuration::Configuration;
     use crate::tes::models::TesTask;
     use crate::tes::TES;
-    use crate::test_utils::{ensure_funnel_running, setup, FUNNEL_PORT};
+    use crate::test_utils::{ensure_funnel_running, setup};
+    // use crate::test_utils::{ensure_funnel_running, setup, FUNNEL_PORT};
     // use crate::tes::models::TesCreateTaskResponse;
 
     async fn create_task() -> Result<String, Box<dyn std::error::Error>> {
