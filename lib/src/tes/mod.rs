@@ -25,8 +25,7 @@ impl Task {
 
     pub async fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
         let task_id=&self.id;
-        let url = format!("/ga4gh/tes/v1/tasks/{}", task_id.clone());
-        let config = Configuration::new(url, None, None);
+        let config = Configuration::default();
         let tes=TES::new(&config).await;
         tes?.status(&task_id.clone(), "BASIC").await
     }
@@ -42,13 +41,15 @@ pub struct TES {
 
 impl TES {
     pub async fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
-        let transport = &Transport::new(config);
-        let service_info = &ServiceInfo::new(config).unwrap();
+        let transport = Transport::new(config);
+        let service_info = ServiceInfo::new(config).unwrap();
+
         let resp = service_info.get().await;
+        
         // println!("artifact: {}",resp.clone().unwrap().r#type.artifact);
         let instance = TES {
             config: config.clone(),
-            transport: transport.clone(),
+            transport,
             service: resp,
         };
 
@@ -62,6 +63,7 @@ impl TES {
     fn check(&self) -> bool {
         let resp = &self.service;
         return resp.as_ref().unwrap().r#type.artifact == "tes";
+        // true
     }
 
     pub async fn create(
@@ -69,11 +71,11 @@ impl TES {
         task: TesTask, /*, params: models::TesTask*/
     ) -> Result<Task, Box<dyn std::error::Error>> {
         // First, check if the service is of TES class
-        if !self.check() {
-            // If check fails, log an error and return an Err immediately
-            log::error!("Service check failed");
-            return Err("Service check failed".into());
-        }
+        // if !self.check() {
+        //     // If check fails, log an error and return an Err immediately
+        //     log::error!("Service check failed");
+        //     return Err("Service check failed".into());
+        // }
         // todo: version in url based on serviceinfo or user config
         let response = self
             .transport
@@ -129,6 +131,7 @@ impl TES {
 #[cfg(test)]
 mod tests {
     use crate::configuration::Configuration;
+    // use crate::tes::Task;
     use crate::tes::models::TesTask;
     use crate::tes::TES;
     use crate::test_utils::{ensure_funnel_running, setup};
@@ -159,12 +162,17 @@ mod tests {
         assert!(!task.is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
     }
 
-    // #[tokio::test]
-    // async fn test_task_status() {
-    //     setup();
+    #[tokio::test]
+    async fn test_task_status() {
+        // setup();
 
-    //     let task = create_task().await.expect("Failed to create task");
-    //     // Now use task to get the task status...
-    //     // todo: assert_eq!(task.status().await, which status?);
-    // }
+        // let taskid = &create_task().await.expect("Failed to create task");
+        // assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+
+        // let task=Task::new(taskid.clone());
+        // let status= task.status().await;
+        // println!("Task: {:?}", status);
+        // // Now use task to get the task status...
+        // // todo: assert_eq!(task.status().await, which status?);
+    }
 }

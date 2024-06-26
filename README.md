@@ -19,7 +19,7 @@ Before running the tests, you need to install Funnel, a task execution system th
 Once you have installed Funnel, you can run the tests with (it will automatically run Funnel as well):
 
 ```
-bash ./run-test.sh
+bash ./run-tests.sh
 ```
 
 To test out the CI/CD workflow locally, install `act` and run the following command:

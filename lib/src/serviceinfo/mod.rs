@@ -20,10 +20,10 @@ impl ServiceInfo {
         let response = self.transport.get("/service-info", None).await;
         match response {
             Ok(response_body) => match serde_json::from_str::<models::Service>(&response_body) {
-                Ok(tes_create_task_response) => Ok(tes_create_task_response),
+                Ok(service) => Ok(service),
                 Err(e) => {
                     log::error!("Failed to deserialize response: {}", e);
-                    Err("Failed to deserialize response".into())
+                    Err(e.into())
                 }
             },
             Err(e) => {
