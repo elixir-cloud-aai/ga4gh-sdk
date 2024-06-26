@@ -55,7 +55,7 @@ generate_openapi_models() {
     echo "TEMP_OUTPUT_DIR is $TEMP_OUTPUT_DIR"
 
     # Modify the import statements in each generated file
-    SED_RULE="s/use crate::models;/#![allow(unused_imports)]\nuse crate::$API_NAME::models;/"
+    SED_RULE="s/use crate::models;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::$API_NAME::models;/"
     for file in $(find "$TEMP_OUTPUT_DIR" -name '*.rs'); do
         if [[ "$OSTYPE" == "darwin"* ]]; then
             # macOS (BSD) sed syntax
