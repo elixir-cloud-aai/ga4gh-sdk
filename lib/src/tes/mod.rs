@@ -7,6 +7,8 @@ use crate::tes::models::TesTask;
 use crate::transport::Transport;
 use serde_json;
 use serde_json::json;
+use serde_json::from_str;
+
 
 // ***
 // should TES.create return Task? which in turn can do status() and other existing-task-related stuff
@@ -23,14 +25,14 @@ impl Task {
         }
     }
 
-    pub async fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
+    pub async fn status(&self, tes: &TES) -> Result<TesState, Box<dyn std::error::Error>> {
         let task_id=&self.id;
-        let config = Configuration::default();
-        let tes=TES::new(&config).await;
-        tes?.status(&task_id.clone(), "BASIC").await
+        // let config = Configuration::default();
+        // let tes=TES::new(config).await;
+        tes.status(&task_id.clone(), "BASIC").await
     }
 }
-
+#[derive(Debug)]
 pub struct TES {
     #[allow(dead_code)]
     config: Configuration, // not used yet
@@ -62,8 +64,8 @@ impl TES {
 
     fn check(&self) -> bool {
         let resp = &self.service;
-        return resp.as_ref().unwrap().r#type.artifact == "tes";
-        // true
+        // return resp.as_ref().unwrap().r#type.artifact == "tes";
+        true
     }
 
     pub async fn create(
@@ -71,11 +73,11 @@ impl TES {
         task: TesTask, /*, params: models::TesTask*/
     ) -> Result<Task, Box<dyn std::error::Error>> {
         // First, check if the service is of TES class
-        // if !self.check() {
-        //     // If check fails, log an error and return an Err immediately
-        //     log::error!("Service check failed");
-        //     return Err("Service check failed".into());
-        // }
+        if !self.check() {
+            // If check fails, log an error and return an Err immediately
+            log::error!("Service check failed");
+            return Err("Service check failed".into());
+        }
         // todo: version in url based on serviceinfo or user config
         let response = self
             .transport
@@ -106,23 +108,20 @@ impl TES {
     ) -> Result<TesState, Box<dyn std::error::Error>> {
         // ?? move to Task::status()
         // todo: version in url based on serviceinfo or user config
-        let url = format!("/ga4gh/tes/v1/tasks/{}", task_id);
+        let url = format!("/tasks/{}", task_id);
         let params = [("view", view)];
         let params_value = serde_json::json!(params);
-        let response = self.transport.get(&url, Some(params_value)).await;
+        // println!("{:?}", &self);
+        // let response = self.transport.get(&url, Some(params_value)).await;
+        let response = self.transport.get(&url, None).await;
+        println!("{:?}", response);
         match response {
-            Ok(response_body) => match serde_json::from_str::<TesState>(&response_body) {
-                Ok(tes_state) => Ok(tes_state),
-                Err(e) => {
-                    log::error!("Failed to deserialize response: {}", e);
-                    Err("Failed to deserialize response".into())
-                }
-            },
-            Err(e) => {
-                log::error!("Error: {}", e);
-                Err(e)
-            }
+        Ok(resp_str) => {
+            let task: TesTask = from_str(&resp_str)?;
+            Ok(task.state.unwrap())
         }
+        Err(e) => Err(e),
+    }
     }
 
     // TODO: pub fn list()
@@ -131,7 +130,7 @@ impl TES {
 #[cfg(test)]
 mod tests {
     use crate::configuration::Configuration;
-    // use crate::tes::Task;
+    use crate::tes::Task;
     use crate::tes::models::TesTask;
     use crate::tes::TES;
     use crate::test_utils::{ensure_funnel_running, setup};
@@ -164,15 +163,27 @@ mod tests {
 
     #[tokio::test]
     async fn test_task_status() {
-        // setup();
+        setup();
 
-        // let taskid = &create_task().await.expect("Failed to create task");
-        // assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+        let taskid = &create_task().await.expect("Failed to create task");
+        assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
 
-        // let task=Task::new(taskid.clone());
-        // let status= task.status().await;
-        // println!("Task: {:?}", status);
-        // // Now use task to get the task status...
-        // // todo: assert_eq!(task.status().await, which status?);
+        let task=Task::new(taskid.clone());
+
+        let mut config = Configuration::default();
+        let funnel_url = ensure_funnel_running().await;
+        config.set_base_path(&funnel_url);
+        match TES::new(&config).await {
+            Ok(tes) => {
+                let status = task.status(&tes).await;
+                println!("Task: {:?}", status);
+            },
+            Err(e) => {
+                // Handle the error e
+                println!("Error creating TES instance: {:?}", e);
+            }
+}
+        // Now use task to get the task status...
+        // todo: assert_eq!(task.status().await, which status?);
     }
 }

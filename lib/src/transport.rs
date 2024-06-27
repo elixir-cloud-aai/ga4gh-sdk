@@ -5,7 +5,7 @@ use serde_json::Value;
 use std::error::Error;
 
 // note: could implement custom certs handling, such as in-TEE generated ephemerial certs
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Transport {
     pub config: Configuration,
     pub client: reqwest::Client,
