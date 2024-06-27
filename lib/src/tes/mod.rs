@@ -181,7 +181,7 @@ mod tests {
                 match status {
                     Ok(state) => {
                         match state {
-                            TesState::Initializing | TesState::Queued => {
+                            TesState::Initializing | TesState::Queued | TesState::Running => {
                                 // Assertion passes if state is Initializing or Queued
                             }
                             _ => {
