@@ -29,7 +29,7 @@ impl Task {
         let task_id=&self.id;
         // let config = Configuration::default();
         // let tes=TES::new(config).await;
-        tes.status(&task_id.clone(), "BASIC").await
+        tes.status(&task_id.clone(), "FULL").await
     }
 }
 #[derive(Debug)]
@@ -64,8 +64,8 @@ impl TES {
 
     fn check(&self) -> bool {
         let resp = &self.service;
-        // return resp.as_ref().unwrap().r#type.artifact == "tes";
-        true
+        return resp.as_ref().unwrap().r#type.artifact == "tes";
+        // true
     }
 
     pub async fn create(
@@ -108,13 +108,12 @@ impl TES {
     ) -> Result<TesState, Box<dyn std::error::Error>> {
         // ?? move to Task::status()
         // todo: version in url based on serviceinfo or user config
-        let url = format!("/tasks/{}", task_id);
-        let params = [("view", view)];
-        let params_value = serde_json::json!(params);
+        let url = format!("/tasks/{}?view={}", task_id, view);
+        // let params = [("view", view)];
+        // let params_value = serde_json::json!(params);
         // println!("{:?}", &self);
         // let response = self.transport.get(&url, Some(params_value)).await;
         let response = self.transport.get(&url, None).await;
-        println!("{:?}", response);
         match response {
         Ok(resp_str) => {
             let task: TesTask = from_str(&resp_str)?;
@@ -134,6 +133,7 @@ mod tests {
     use crate::tes::models::TesTask;
     use crate::tes::TES;
     use crate::test_utils::{ensure_funnel_running, setup};
+    use crate::tes::TesState;
     // use crate::test_utils::{ensure_funnel_running, setup, FUNNEL_PORT};
     // use crate::tes::models::TesCreateTaskResponse;
 
@@ -177,6 +177,24 @@ mod tests {
             Ok(tes) => {
                 let status = task.status(&tes).await;
                 println!("Task: {:?}", status);
+                // Adding an assertion for the Ok variant
+                match status {
+                    Ok(state) => {
+                        match state {
+                            TesState::Initializing | TesState::Queued => {
+                                // Assertion passes if state is Initializing or Queued
+                            }
+                            _ => {
+                                panic!("Unexpected state: {:?}", state);
+                            }
+                        }
+
+                    }
+                    Err(err) => {
+                        panic!("Task status returned an error: {:?}", err);
+                    }
+                }
+
             },
             Err(e) => {
                 // Handle the error e
