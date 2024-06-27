@@ -182,7 +182,8 @@ mod tests {
                     Ok(state) => {
                         match state {
                             TesState::Initializing | TesState::Queued | TesState::Running => {
-                                // Assertion passes if state is Initializing or Queued
+                                // Assertion passes if state is Initializing or Queued (When ran locally, the response is Initializing or Queued)
+                                // In Github Workflow, the state is Running
                             }
                             _ => {
                                 panic!("Unexpected state: {:?}", state);
