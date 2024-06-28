@@ -10,9 +10,10 @@ use serde_json::json;
 use serde_json::from_str;
 
 
-// ***
-// should TES.create return Task? which in turn can do status() and other existing-task-related stuff
-// instead of TES.status(task_id) we could do task.status()
+pub fn urlencode<T: AsRef<str>>(s: T) -> String {
+    ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Task {
     id: String,
@@ -130,12 +131,16 @@ impl TES {
 
     pub async fn cancel(
         &self,
-        task_id: &str,
+        id: &str,
     ) -> Result< serde_json::Value, Box<dyn std::error::Error>> {
         // ?? move to Task::cancel()
         // todo: version in url based on serviceinfo or user config
-        let url = format!("/tasks/{}:cancel", task_id);
+        let id=&urlencode(id);
+        let url = format!("/tasks/{}:cancel", id);
+        
+        println!("{:?}",url);
         let response = self.transport.post(&url, None).await;
+        println!("the response is: {:?}",response);
         match response {
         Ok(resp_str) => {
             let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
@@ -224,8 +229,30 @@ mod tests {
                 // Handle the error e
                 println!("Error creating TES instance: {:?}", e);
             }
-}
-        // Now use task to get the task status...
-        // todo: assert_eq!(task.status().await, which status?);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_cancel_task() {
+        setup();
+
+        let taskid = &create_task().await.expect("Failed to create task");
+        assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+
+        let task=Task::new(taskid.clone());
+
+        let mut config = Configuration::default();
+        let funnel_url = ensure_funnel_running().await;
+        config.set_base_path(&funnel_url);
+        match TES::new(&config).await {
+            Ok(tes) => {
+                let cancel= task.cancel(&tes).await;
+                println!("{:?}", cancel);
+            },
+            Err(e) => {
+                // Handle the error e
+                println!("Error creating TES instance: {:?}", e);
+            }
+        }   
     }
 }
