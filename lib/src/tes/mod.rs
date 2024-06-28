@@ -81,7 +81,7 @@ impl TES {
         // todo: version in url based on serviceinfo or user config
         let response = self
             .transport
-            .post("/ga4gh/tes/v1/tasks", json!(task))
+            .post("/ga4gh/tes/v1/tasks", Some(json!(task)))
             .await;
         match response {
             Ok(response_body) => {
@@ -123,7 +123,25 @@ impl TES {
     }
     }
 
-    // TODO: pub fn list()
+    pub async fn cancel(
+        &self,
+        task_id: &str,
+    ) -> Result< serde_json::Value, Box<dyn std::error::Error>> {
+        // ?? move to Task::cancel()
+        // todo: version in url based on serviceinfo or user config
+        let url = format!("/tasks/{}:cancel", task_id);
+        let response = self.transport.post(&url, None).await;
+        match response {
+        Ok(resp_str) => {
+            let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
+            match parsed_json {
+                Ok(json) => Ok(json),
+                Err(e) => Err(Box::new(e)),
+            }
+        }
+        Err(e) => Err(e),
+    }
+    }
 }
 
 #[cfg(test)]

@@ -73,9 +73,8 @@ impl Transport {
             .await
     }
 
-    pub async fn post(&self, endpoint: &str, data: Value) -> Result<String, Box<dyn Error>> {
-        self.request(reqwest::Method::POST, endpoint, Some(data), None)
-            .await
+    pub async fn post(&self, endpoint: &str, data: Option<Value>) -> Result<String, Box<dyn Error>> {
+    self.request(reqwest::Method::POST, endpoint, data, None).await
     }
 
     pub async fn put(&self, endpoint: &str, data: Value) -> Result<String, Box<dyn Error>> {
