@@ -31,6 +31,11 @@ impl Task {
         // let tes=TES::new(config).await;
         tes.status(&task_id.clone(), "FULL").await
     }
+    
+    pub async fn cancel(&self, tes: &TES) -> Result<serde_json::Value , Box<dyn std::error::Error>> {
+        let task_id=&self.id;
+        tes.cancel(&task_id.clone()).await
+    }
 }
 #[derive(Debug)]
 pub struct TES {
