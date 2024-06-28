@@ -17,6 +17,7 @@ pub fn urlencode<T: AsRef<str>>(s: T) -> String {
 #[derive(Serialize, Deserialize)]
 pub struct Task {
     id: String,
+    // transport: Transport,
 }
 
 impl Task {
@@ -137,7 +138,7 @@ impl TES {
         // todo: version in url based on serviceinfo or user config
         let id=&urlencode(id);
         let url = format!("/tasks/{}:cancel", id);
-        
+        // let url= &urlencode(url); 
         println!("{:?}",url);
         let response = self.transport.post(&url, None).await;
         println!("the response is: {:?}",response);

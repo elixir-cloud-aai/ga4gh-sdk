@@ -39,17 +39,23 @@ impl Transport {
             )));
         }
 
-        let resp = self
+        let mut request_builder = self
             .client
             .request(method, &full_url)
             .header(
                 reqwest::header::USER_AGENT,
                 self.config.user_agent.clone().unwrap_or_default(),
-            )
-            .json(&data)
-            .query(&params)
-            .send()
-            .await?;
+            );
+        
+        if let Some(ref params_value) = params {
+            request_builder = request_builder.query(params_value);
+        }
+
+        if let Some(ref data_value) = data {
+            request_builder = request_builder.json(data_value);
+        }
+
+        let resp = request_builder.send().await?;
 
         let status = resp.status();
         let content = resp.text().await?;
