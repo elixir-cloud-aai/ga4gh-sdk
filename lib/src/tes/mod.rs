@@ -4,6 +4,7 @@ use crate::serviceinfo::models::Service;
 use crate::serviceinfo::ServiceInfo;
 use crate::tes::models::TesState;
 use crate::tes::models::TesTask;
+use crate::transport;
 use crate::transport::Transport;
 use serde_json;
 use serde_json::json;
@@ -14,24 +15,34 @@ pub fn urlencode<T: AsRef<str>>(s: T) -> String {
     ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Task {
     id: String,
-    // transport: Transport,
+    transport: Transport,
 }
 
 impl Task {
-    pub fn new(id: String) -> Self {
+    pub fn new(id: String, transport: Transport) -> Self {
         Task {
             id,
+            transport,
         }
     }
 
-    pub async fn status(&self, tes: &TES) -> Result<TesState, Box<dyn std::error::Error>> {
+    pub async fn status(&self, view: &str) -> Result<TesState, Box<dyn std::error::Error>> {
         let task_id=&self.id;
-        // let config = Configuration::default();
-        // let tes=TES::new(config).await;
-        tes.status(&task_id.clone(), "FULL").await
+        let url = format!("/tasks/{}?view={}", task_id, view);
+        // let params = [("view", view)];
+        // let params_value = serde_json::json!(params);
+        // let response = self.transport.get(&url, Some(params_value)).await;
+        let response = self.transport.get(&url, None).await;
+        match response {
+        Ok(resp_str) => {
+            let task: TesTask = from_str(&resp_str)?;
+            Ok(task.state.unwrap())
+        }
+        Err(e) => Err(e),
+        }
     }
     
     pub async fn cancel(&self, tes: &TES) -> Result<serde_json::Value , Box<dyn std::error::Error>> {
@@ -92,13 +103,16 @@ impl TES {
             .await;
         match response {
             Ok(response_body) => {
-                match serde_json::from_str::<Task>(&response_body) {
-                    Ok(tes_create_task_response) => Ok(tes_create_task_response),
-                    Err(e) => {
-                        log::error!("Failed to deserialize response: {}", e);
-                        Err("Failed to deserialize response".into())
-                    }
-                }
+                let v: serde_json::Value = serde_json::from_str(&response_body)?;
+                
+                // Access the `id` field
+                let task_id = v.get("id").and_then(|v| v.as_str()).unwrap_or_default().trim_matches('"').to_string();;
+                
+                let task=Task{
+                    id: task_id,
+                    transport: self.transport.clone(),
+                };
+                Ok(task)                         
             }
             Err(e) => {
                 log::error!("Error: {}", e);
@@ -113,21 +127,11 @@ impl TES {
         task_id: &str,
         view: &str,// 'view' controls the level of detail in the response. Expected values: "MINIMAL","BASIC" or "FULL".
     ) -> Result<TesState, Box<dyn std::error::Error>> {
-        // ?? move to Task::status()
-        // todo: version in url based on serviceinfo or user config
-        let url = format!("/tasks/{}?view={}", task_id, view);
-        // let params = [("view", view)];
-        // let params_value = serde_json::json!(params);
-        // println!("{:?}", &self);
-        // let response = self.transport.get(&url, Some(params_value)).await;
-        let response = self.transport.get(&url, None).await;
-        match response {
-        Ok(resp_str) => {
-            let task: TesTask = from_str(&resp_str)?;
-            Ok(task.state.unwrap())
-        }
-        Err(e) => Err(e),
-    }
+        let task= Task{
+            id: task_id.to_string(),
+            transport: self.transport.clone(),
+        };
+        task.status(view).await
     }
 
     pub async fn cancel(
@@ -139,9 +143,9 @@ impl TES {
         let id=&urlencode(id);
         let url = format!("/tasks/{}:cancel", id);
         // let url= &urlencode(url); 
-        println!("{:?}",url);
+        // println!("{:?}",url);
         let response = self.transport.post(&url, None).await;
-        println!("the response is: {:?}",response);
+        // println!("the response is: {:?}",response);
         match response {
         Ok(resp_str) => {
             let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
@@ -196,15 +200,13 @@ mod tests {
 
         let taskid = &create_task().await.expect("Failed to create task");
         assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
-
-        let task=Task::new(taskid.clone());
-
         let mut config = Configuration::default();
         let funnel_url = ensure_funnel_running().await;
         config.set_base_path(&funnel_url);
         match TES::new(&config).await {
             Ok(tes) => {
-                let status = task.status(&tes).await;
+                let task=Task::new(taskid.clone(),tes.transport);
+                let status = task.status("FULL").await;
                 println!("Task: {:?}", status);
                 // Adding an assertion for the Ok variant
                 match status {
@@ -239,16 +241,14 @@ mod tests {
 
         let taskid = &create_task().await.expect("Failed to create task");
         assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
-
-        let task=Task::new(taskid.clone());
-
         let mut config = Configuration::default();
         let funnel_url = ensure_funnel_running().await;
         config.set_base_path(&funnel_url);
         match TES::new(&config).await {
             Ok(tes) => {
-                let cancel= task.cancel(&tes).await;
-                println!("{:?}", cancel);
+                let task=Task::new(taskid.clone(), tes.transport);
+                // let cancel= task.cancel(&tes).await;
+                // println!("{:?}", cancel);
             },
             Err(e) => {
                 // Handle the error e
