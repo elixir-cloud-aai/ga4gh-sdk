@@ -4,7 +4,6 @@ use crate::serviceinfo::models::Service;
 use crate::serviceinfo::ServiceInfo;
 use crate::tes::models::TesState;
 use crate::tes::models::TesTask;
-use crate::transport;
 use crate::transport::Transport;
 use serde_json;
 use serde_json::json;
@@ -29,8 +28,9 @@ impl Task {
         }
     }
 
-    pub async fn status(&self, view: &str) -> Result<TesState, Box<dyn std::error::Error>> {
+    pub async fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
         let task_id=&self.id;
+        let view= "FULL";
         let url = format!("/tasks/{}?view={}", task_id, view);
         // let params = [("view", view)];
         // let params_value = serde_json::json!(params);
@@ -45,9 +45,25 @@ impl Task {
         }
     }
     
-    pub async fn cancel(&self, tes: &TES) -> Result<serde_json::Value , Box<dyn std::error::Error>> {
-        let task_id=&self.id;
-        tes.cancel(&task_id.clone()).await
+    pub async fn cancel(&self) -> Result<serde_json::Value , Box<dyn std::error::Error>> {
+        
+        let id=&self.id;
+        let id=&urlencode(id);
+        let url = format!("/tasks/{}:cancel", id);
+        // let url= &urlencode(url); 
+        // println!("{:?}",url);
+        let response = self.transport.post(&url, None).await;
+        // println!("the response is: {:?}",response);
+        match response {
+        Ok(resp_str) => {
+            let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
+            match parsed_json {
+                Ok(json) => Ok(json),
+                Err(e) => Err(Box::new(e)),
+            }
+        }
+        Err(e) => Err(e),
+    }
     }
 }
 #[derive(Debug)]
@@ -106,7 +122,7 @@ impl TES {
                 let v: serde_json::Value = serde_json::from_str(&response_body)?;
                 
                 // Access the `id` field
-                let task_id = v.get("id").and_then(|v| v.as_str()).unwrap_or_default().trim_matches('"').to_string();;
+                let task_id = v.get("id").and_then(|v| v.as_str()).unwrap_or_default().trim_matches('"').to_string();
                 
                 let task=Task{
                     id: task_id,
@@ -121,41 +137,20 @@ impl TES {
         }
     }
 
-    // pub async fn status(&self, task: &TesCreateTaskResponse) -> Result<TesState, Box<dyn std::error::Error>> {
-    pub async fn status(
-        &self,
-        task_id: &str,
-        view: &str,// 'view' controls the level of detail in the response. Expected values: "MINIMAL","BASIC" or "FULL".
-    ) -> Result<TesState, Box<dyn std::error::Error>> {
-        let task= Task{
-            id: task_id.to_string(),
-            transport: self.transport.clone(),
-        };
-        task.status(view).await
-    }
-
-    pub async fn cancel(
-        &self,
-        id: &str,
-    ) -> Result< serde_json::Value, Box<dyn std::error::Error>> {
-        // ?? move to Task::cancel()
-        // todo: version in url based on serviceinfo or user config
-        let id=&urlencode(id);
-        let url = format!("/tasks/{}:cancel", id);
-        // let url= &urlencode(url); 
-        // println!("{:?}",url);
-        let response = self.transport.post(&url, None).await;
-        // println!("the response is: {:?}",response);
+    pub async fn get(&self, view: &str, id: &str) -> Result<TesTask, Box<dyn std::error::Error>> {
+        let task_id=id;
+        let url = format!("/tasks/{}?view={}", task_id, view);
+        // let params = [("view", view)];
+        // let params_value = serde_json::json!(params);
+        // let response = self.transport.get(&url, Some(params_value)).await;
+        let response = self.transport.get(&url, None).await;
         match response {
         Ok(resp_str) => {
-            let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
-            match parsed_json {
-                Ok(json) => Ok(json),
-                Err(e) => Err(Box::new(e)),
-            }
+            let task: TesTask = from_str(&resp_str)?;
+            Ok(task)
         }
         Err(e) => Err(e),
-    }
+        }
     }
 }
 
@@ -206,7 +201,7 @@ mod tests {
         match TES::new(&config).await {
             Ok(tes) => {
                 let task=Task::new(taskid.clone(),tes.transport);
-                let status = task.status("FULL").await;
+                let status = task.status().await;
                 println!("Task: {:?}", status);
                 // Adding an assertion for the Ok variant
                 match status {
@@ -247,8 +242,8 @@ mod tests {
         match TES::new(&config).await {
             Ok(tes) => {
                 let task=Task::new(taskid.clone(), tes.transport);
-                // let cancel= task.cancel(&tes).await;
-                // println!("{:?}", cancel);
+                let cancel= task.cancel().await;
+                assert!(cancel.is_ok());
             },
             Err(e) => {
                 // Handle the error e
