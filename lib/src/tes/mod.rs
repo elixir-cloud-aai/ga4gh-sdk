@@ -1,5 +1,6 @@
 pub mod models;
 use crate::configuration::Configuration;
+use crate::tes::models::TesListTasksResponse;
 use crate::serviceinfo::models::Service;
 use crate::serviceinfo::ServiceInfo;
 use crate::tes::models::TesState;
@@ -12,6 +13,25 @@ use serde_json::from_str;
 
 pub fn urlencode<T: AsRef<str>>(s: T) -> String {
     ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
+}
+
+/// struct for passing parameters to the method [`list_tasks`]
+#[derive(Clone, Debug)]
+pub struct ListTasksParams {
+    /// OPTIONAL. Filter the list to include tasks where the name matches this prefix. If unspecified, no task name filtering is done.
+    pub name_prefix: Option<String>,
+    /// OPTIONAL. Filter tasks by state. If unspecified, no task state filtering is done.
+    pub state: Option<models::TesState>,
+    /// OPTIONAL. Provide key tag to filter. The field tag_key is an array of key values, and will be zipped with an optional tag_value array. So the query: ```   ?tag_key=foo1&tag_value=bar1&tag_key=foo2&tag_value=bar2 ``` Should be constructed into the structure { \"foo1\" : \"bar1\", \"foo2\" : \"bar2\"}  ```   ?tag_key=foo1 ``` Should be constructed into the structure {\"foo1\" : \"\"}  If the tag_value is empty, it will be treated as matching any possible value. If a tag value is provided, both the tag's key and value must be exact matches for a task to be returned. Filter                            Tags                          Match? ---------------------------------------------------------------------- {\"foo\": \"bar\"}                    {\"foo\": \"bar\"}                Yes {\"foo\": \"bar\"}                    {\"foo\": \"bat\"}                No {\"foo\": \"\"}                       {\"foo\": \"\"}                   Yes {\"foo\": \"bar\", \"baz\": \"bat\"}      {\"foo\": \"bar\", \"baz\": \"bat\"}  Yes {\"foo\": \"bar\"}                    {\"foo\": \"bar\", \"baz\": \"bat\"}  Yes {\"foo\": \"bar\", \"baz\": \"bat\"}      {\"foo\": \"bar\"}                No {\"foo\": \"\"}                       {\"foo\": \"bar\"}                Yes {\"foo\": \"\"}                       {}                            No
+    pub tag_key: Option<Vec<String>>,
+    /// OPTIONAL. The companion value field for tag_key
+    pub tag_value: Option<Vec<String>>,
+    /// Optional number of tasks to return in one page. Must be less than 2048. Defaults to 256.
+    pub page_size: Option<i32>,
+    /// OPTIONAL. Page token is used to retrieve the next page of results. If unspecified, returns the first page of results. The value can be found in the `next_page_token` field of the last returned result of ListTasks
+    pub page_token: Option<String>,
+    /// OPTIONAL. Affects the fields included in the returned Task messages.  `MINIMAL`: Task message will include ONLY the fields: - `tesTask.Id` - `tesTask.State`  `BASIC`: Task message will include all fields EXCEPT: - `tesTask.ExecutorLog.stdout` - `tesTask.ExecutorLog.stderr` - `tesInput.content` - `tesTaskLog.system_logs`  `FULL`: Task message includes all fields.
+    pub view: Option<String>
 }
 
 #[derive(Debug)]
@@ -152,6 +172,27 @@ impl TES {
         Err(e) => Err(e),
         }
     }
+    pub async fn list_tasks(&self, params: Option<ListTasksParams>) -> Result<TesListTasksResponse, Box<dyn std::error::Error>> {
+        let params_value = json!({
+        "name_prefix": params.as_ref().map(|p| &p.name_prefix),
+        "state": params.as_ref().map(|p| &p.state),
+        "tag_key": params.as_ref().map(|p| &p.tag_key),
+        "tag_value": params.as_ref().map(|p| &p.tag_value),
+        "page_size": params.as_ref().map(|p| &p.page_size),
+        "page_token": params.as_ref().map(|p| &p.page_token),
+        "view": params.as_ref().map(|p| &p.view),
+    });
+
+        let response = self.transport.get("/tasks", Some(params_value)).await;
+        match response {
+        Ok(resp_str) => {
+            let task: TesListTasksResponse = from_str(&resp_str)?;
+            Ok(task)
+        }
+        Err(e) => Err(e),
+        }
+    }
+    
 }
 
 #[cfg(test)]
@@ -162,6 +203,7 @@ mod tests {
     use crate::tes::TES;
     use crate::test_utils::{ensure_funnel_running, setup};
     use crate::tes::TesState;
+    // use crate::tes::ListTasksParams;
     // use crate::test_utils::{ensure_funnel_running, setup, FUNNEL_PORT};
     // use crate::tes::models::TesCreateTaskResponse;
 
@@ -243,7 +285,39 @@ mod tests {
             Ok(tes) => {
                 let task=Task::new(taskid.clone(), tes.transport);
                 let cancel= task.cancel().await;
+                println!("Cancel response: {:?}", cancel); // Log the cancel response
                 assert!(cancel.is_ok());
+            },
+            Err(e) => {
+                // Handle the error e
+                println!("Error creating TES instance: {:?}", e);
+            }
+        }   
+    }
+
+    #[tokio::test]
+    async fn test_list_task() {
+        setup();
+
+        let taskid = &create_task().await.expect("Failed to create task");
+        assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+        let mut config = Configuration::default();
+        let funnel_url = ensure_funnel_running().await;
+        config.set_base_path(&funnel_url);
+        match TES::new(&config).await {
+            Ok(tes) => {
+                // let params: ListTasksParams = ListTasksParams {
+                //     name_prefix: None,
+                //     state: None,
+                //     tag_key: None,
+                //     tag_value: None,
+                //     page_size: None,
+                //     page_token: None,
+                //     view: None,
+                // };
+
+                let list= tes.list_tasks(None).await;
+                println!("{:?}",list);
             },
             Err(e) => {
                 // Handle the error e
