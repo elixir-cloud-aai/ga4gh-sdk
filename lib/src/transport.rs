@@ -52,7 +52,8 @@ impl Transport {
         }
 
         if let Some(ref data_value) = data {
-            request_builder = request_builder.json(data_value);
+             // Figure out some way to filter out `Null` values of data_value 
+            request_builder = request_builder.json(&data_value);
         }
 
         let resp = request_builder.send().await?;

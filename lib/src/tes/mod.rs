@@ -173,17 +173,26 @@ impl TES {
         }
     }
     pub async fn list_tasks(&self, params: Option<ListTasksParams>) -> Result<TesListTasksResponse, Box<dyn std::error::Error>> {
-        let params_value = json!({
-        "name_prefix": params.as_ref().map(|p| &p.name_prefix),
-        "state": params.as_ref().map(|p| &p.state),
-        "tag_key": params.as_ref().map(|p| &p.tag_key),
-        "tag_value": params.as_ref().map(|p| &p.tag_value),
-        "page_size": params.as_ref().map(|p| &p.page_size),
-        "page_token": params.as_ref().map(|p| &p.page_token),
-        "view": params.as_ref().map(|p| &p.view),
-    });
-
-        let response = self.transport.get("/tasks", Some(params_value)).await;
+        
+        let params_value = params.map(|p| {
+            json!({
+                "name_prefix": p.name_prefix,
+                "state": p.state,
+                "tag_key": p.tag_key,
+                "tag_value": p.tag_value,
+                "page_size": p.page_size,
+                "page_token": p.page_token,
+                "view": p.view,
+            })
+        });
+        // println!("{:?}",params_value);
+        // Make the request with or without parameters based on the presence of params
+        let response = if let Some(params_value) = params_value {
+            self.transport.get("/tasks", Some(params_value)).await
+        } else {
+            self.transport.get("/tasks", None).await
+        };
+        
         match response {
         Ok(resp_str) => {
             let task: TesListTasksResponse = from_str(&resp_str)?;
@@ -203,7 +212,7 @@ mod tests {
     use crate::tes::TES;
     use crate::test_utils::{ensure_funnel_running, setup};
     use crate::tes::TesState;
-    // use crate::tes::ListTasksParams;
+    use crate::tes::ListTasksParams;
     // use crate::test_utils::{ensure_funnel_running, setup, FUNNEL_PORT};
     // use crate::tes::models::TesCreateTaskResponse;
 
@@ -285,7 +294,6 @@ mod tests {
             Ok(tes) => {
                 let task=Task::new(taskid.clone(), tes.transport);
                 let cancel= task.cancel().await;
-                println!("Cancel response: {:?}", cancel); // Log the cancel response
                 assert!(cancel.is_ok());
             },
             Err(e) => {
@@ -306,17 +314,17 @@ mod tests {
         config.set_base_path(&funnel_url);
         match TES::new(&config).await {
             Ok(tes) => {
-                // let params: ListTasksParams = ListTasksParams {
-                //     name_prefix: None,
-                //     state: None,
-                //     tag_key: None,
-                //     tag_value: None,
-                //     page_size: None,
-                //     page_token: None,
-                //     view: None,
-                // };
+                let params: ListTasksParams = ListTasksParams {
+                    name_prefix: None,
+                    state: None,
+                    tag_key: None,
+                    tag_value: None,
+                    page_size: None,
+                    page_token: None,
+                    view: Some("BASIC".to_string()),
+                };
 
-                let list= tes.list_tasks(None).await;
+                let list= tes.list_tasks(Some(params)).await;
                 println!("{:?}",list);
             },
             Err(e) => {
