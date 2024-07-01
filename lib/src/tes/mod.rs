@@ -57,7 +57,11 @@ impl Task {
                 let task: TesTask = from_str(&resp_str)?;
                 Ok(task.state.unwrap())
             }
-            Err(e) => Err(e),
+            Err(e) => {
+                let err_msg = format!("HTTP request failed: {}", e);
+                eprintln!("{}", err_msg);
+                Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, err_msg)))
+            }
         }
     }
 
@@ -218,7 +222,13 @@ impl TES {
                 let task: TesListTasksResponse = from_str(&resp_str)?;
                 Ok(task)
             }
-            Err(e) => Err(e),
+            Err(e) => {
+                eprintln!("HTTP request failed: {:?}", e);
+                Err(Box::new(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("HTTP request failed: {:?}", e),
+                )))
+            }
         }
     }
 }
@@ -258,7 +268,7 @@ mod tests {
     async fn test_task_create() {
         setup();
         let (task, _tes) = create_task().await.expect("Failed to create task");
-        assert!(!task.id.is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+        assert!(!task.id.is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
     }
 
     #[tokio::test]

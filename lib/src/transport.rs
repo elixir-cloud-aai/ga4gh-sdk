@@ -38,7 +38,13 @@ impl Transport {
         );
 
         if let Some(ref params_value) = params {
-            request_builder = request_builder.query(params_value);
+            // Validate or log params_value before setting it as query parameters
+            if params_value.is_object() {
+                request_builder = request_builder.query(params_value);
+            } else {
+                error!("params_value is not an object and cannot be used as query parameters: {:?}", params_value);
+                return Err(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "params_value must be an object")));
+            }
         }
 
         if let Some(ref data) = data {
