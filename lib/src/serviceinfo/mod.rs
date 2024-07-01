@@ -42,22 +42,6 @@ mod tests {
     use tokio;
 
     #[tokio::test]
-    async fn test_get_service_info() {
-        // let mut mock_transport = MockTransport::new();
-
-        // // Set up the mock to return a specific value when `get` is called
-        // mock_transport.expect_get()
-        //     .with(eq("http://localhost/service-info"), eq(None))
-        //     .returning(|_, _| Ok(String::from("{\"id\": \"test\", \"name\": \"test\"}")));
-
-        // let service_info = ServiceInfo::new(mock_transport);
-        // let result = service_info.get_service_info().await;
-
-        // assert!(result.is_ok());
-        // assert_eq!(result.unwrap().id, "test");
-        // assert_eq!(result.unwrap().name, "test");
-    }
-    #[tokio::test]
     async fn test_get_service_info_from_funnel() {
         setup();
         let mut config = Configuration::default();

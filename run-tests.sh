@@ -32,7 +32,7 @@ done
 echo "Funnel server is running."
 
 # Run the tests
-cargo test
+RUST_BACKTRACE=1 RUST_LOG=debug cargo test
 
 # # Stop and remove the Funnel server container
 # docker stop funnel
