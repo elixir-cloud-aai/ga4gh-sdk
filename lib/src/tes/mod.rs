@@ -309,7 +309,7 @@ mod tests {
         setup();
 
         let (task, tes) = &create_task().await.expect("Failed to create task");
-        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
 
         let params: ListTasksParams = ListTasksParams {
             name_prefix: None,
