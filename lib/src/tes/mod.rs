@@ -175,15 +175,31 @@ impl TES {
     pub async fn list_tasks(&self, params: Option<ListTasksParams>) -> Result<TesListTasksResponse, Box<dyn std::error::Error>> {
         
         let params_value = params.map(|p| {
-            json!({
-                "name_prefix": p.name_prefix,
-                "state": p.state,
-                "tag_key": p.tag_key,
-                "tag_value": p.tag_value,
-                "page_size": p.page_size,
-                "page_token": p.page_token,
-                "view": p.view,
-            })
+            let mut map = serde_json::Map::new();
+            
+            if let Some(name_prefix) = p.name_prefix {
+                map.insert("name_prefix".to_string(), json!(name_prefix));
+            }
+            if let Some(state) = p.state {
+                map.insert("state".to_string(), json!(state));
+            }
+            if let Some(tag_key) = p.tag_key {
+                map.insert("tag_key".to_string(), json!(tag_key));
+            }
+            if let Some(tag_value) = p.tag_value {
+                map.insert("tag_value".to_string(), json!(tag_value));
+            }
+            if let Some(page_size) = p.page_size {
+                map.insert("page_size".to_string(), json!(page_size));
+            }
+            if let Some(page_token) = p.page_token {
+                map.insert("page_token".to_string(), json!(page_token));
+            }
+            if let Some(view) = p.view {
+                map.insert("view".to_string(), json!(view));
+            }
+
+            json!(map)
         });
         // println!("{:?}",params_value);
         // Make the request with or without parameters based on the presence of params
@@ -325,6 +341,7 @@ mod tests {
                 };
 
                 let list= tes.list_tasks(Some(params)).await;
+                assert!(list.is_ok());
                 println!("{:?}",list);
             },
             Err(e) => {
