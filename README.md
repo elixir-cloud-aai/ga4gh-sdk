@@ -22,7 +22,7 @@ Once you have installed Funnel, you can run the tests with (it will automaticall
 bash ./run-tests.sh
 ```
 
-To test out the CI/CD workflow locally, install `act` and run the following command:
+To test the CI/CD workflow locally, install `act` and run the following command:
 ```
 act -j build --container-architecture linux/amd64 -P ubuntu-latest=ubuntu:20.04 --reuse
 ```
