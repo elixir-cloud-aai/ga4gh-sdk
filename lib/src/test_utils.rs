@@ -26,8 +26,6 @@ pub async fn ensure_funnel_running() -> String {
 
     if output_str.is_empty() {
         panic!("Funnel is not running.");
-    } else {
-        info!("Funnel is already running.");
     }
 
     let funnel_url = format!("{}:{}", FUNNEL_HOST, FUNNEL_PORT);

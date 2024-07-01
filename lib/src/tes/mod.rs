@@ -214,68 +214,54 @@ mod tests {
     use crate::tes::TesState;
     use crate::tes::TES;
     use crate::test_utils::{ensure_funnel_running, setup};
-    // use crate::test_utils::{ensure_funnel_running, setup, FUNNEL_PORT};
     // use crate::tes::models::TesCreateTaskResponse;
 
-    async fn create_task() -> Result<String, Box<dyn std::error::Error>> {
-        setup();
+    async fn create_task() -> Result<(Task, TES), Box<dyn std::error::Error>> {
+        // setup(); – should be run once in the test function
         let mut config = Configuration::default();
         let funnel_url = ensure_funnel_running().await;
         config.set_base_path(&funnel_url);
-        let tes = TES::new(&config).await;
+        let tes = match TES::new(&config).await {
+            Ok(tes) => tes,
+            Err(e) => {
+                println!("Error creating TES instance: {:?}", e);
+                return Err(e.into());
+            }
+        };
 
         let task_json =
             std::fs::read_to_string("./lib/sample/grape.tes").expect("Unable to read file");
         let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
 
-        let task = tes?.create(task).await?;
-        Ok(task.id)
+        let task = tes.create(task).await?;
+        Ok((task, tes))
     }
 
     #[tokio::test]
     async fn test_task_create() {
         setup();
-        ensure_funnel_running().await;
-
-        let task = create_task().await.expect("Failed to create task");
-        assert!(!task.is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+        let (task, _tes) = create_task().await.expect("Failed to create task");
+        assert!(!task.id.is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
     }
 
     #[tokio::test]
     async fn test_task_status() {
         setup();
 
-        let taskid = &create_task().await.expect("Failed to create task");
-        assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
-        let mut config = Configuration::default();
-        let funnel_url = ensure_funnel_running().await;
-        config.set_base_path(&funnel_url);
-        match TES::new(&config).await {
-            Ok(tes) => {
-                let task = Task::new(taskid.clone(), tes.transport);
-                let status = task.status().await;
-                println!("Task: {:?}", status);
-                // Adding an assertion for the Ok variant
-                match status {
-                    Ok(state) => {
-                        match state {
-                            TesState::Initializing | TesState::Queued | TesState::Running => {
-                                // Assertion passes if state is Initializing or Queued (When ran locally, the response is Initializing or Queued)
-                                // In Github Workflow, the state is Running
-                            }
-                            _ => {
-                                panic!("Unexpected state: {:?}", state);
-                            }
-                        }
-                    }
-                    Err(err) => {
-                        panic!("Task status returned an error: {:?}", err);
-                    }
-                }
+        let (task, _tes) = create_task().await.expect("Failed to create task");
+        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+    
+        let status = task.status().await;
+        match status {
+            Ok(state) => {
+                assert!(
+                    matches!(state, TesState::Initializing | TesState::Queued | TesState::Running),
+                    "Unexpected state: {:?}",
+                    state
+                );
             }
-            Err(e) => {
-                // Handle the error e
-                println!("Error creating TES instance: {:?}", e);
+            Err(err) => {
+                panic!("Task status returned an error: {:?}", err);
             }
         }
     }
@@ -284,52 +270,31 @@ mod tests {
     async fn test_cancel_task() {
         setup();
 
-        let taskid = &create_task().await.expect("Failed to create task");
-        assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
-        let mut config = Configuration::default();
-        let funnel_url = ensure_funnel_running().await;
-        config.set_base_path(&funnel_url);
-        match TES::new(&config).await {
-            Ok(tes) => {
-                let task = Task::new(taskid.clone(), tes.transport);
-                let cancel = task.cancel().await;
-                assert!(cancel.is_ok());
-            }
-            Err(e) => {
-                // Handle the error e
-                println!("Error creating TES instance: {:?}", e);
-            }
-        }
+        let (task, _tes) = &create_task().await.expect("Failed to create task");
+        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+
+        let cancel = task.cancel().await;
+        assert!(cancel.is_ok());
     }
 
     #[tokio::test]
     async fn test_list_task() {
         setup();
 
-        let taskid = &create_task().await.expect("Failed to create task");
-        assert!(!taskid.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
-        let mut config = Configuration::default();
-        let funnel_url = ensure_funnel_running().await;
-        config.set_base_path(&funnel_url);
-        match TES::new(&config).await {
-            Ok(tes) => {
-                let params: ListTasksParams = ListTasksParams {
-                    name_prefix: None,
-                    state: None,
-                    tag_key: None,
-                    tag_value: None,
-                    page_size: None,
-                    page_token: None,
-                    view: Some("BASIC".to_string()),
-                };
+        let (task, tes) = &create_task().await.expect("Failed to create task");
+        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
 
-                let list = tes.list_tasks(Some(params)).await;
-                println!("{:?}", list);
-            }
-            Err(e) => {
-                // Handle the error e
-                println!("Error creating TES instance: {:?}", e);
-            }
-        }
+        let params: ListTasksParams = ListTasksParams {
+            name_prefix: None,
+            state: None,
+            tag_key: None,
+            tag_value: None,
+            page_size: None,
+            page_token: None,
+            view: Some("BASIC".to_string()),
+        };
+
+        let list = tes.list_tasks(Some(params)).await;
+        println!("{:?}", list);
     }
 }
