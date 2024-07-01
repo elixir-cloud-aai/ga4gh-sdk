@@ -1,15 +1,14 @@
 pub mod models;
 use crate::configuration::Configuration;
-use crate::tes::models::TesListTasksResponse;
 use crate::serviceinfo::models::Service;
 use crate::serviceinfo::ServiceInfo;
+use crate::tes::models::TesListTasksResponse;
 use crate::tes::models::TesState;
 use crate::tes::models::TesTask;
 use crate::transport::Transport;
 use serde_json;
-use serde_json::json;
 use serde_json::from_str;
-
+use serde_json::json;
 
 pub fn urlencode<T: AsRef<str>>(s: T) -> String {
     ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
@@ -31,7 +30,7 @@ pub struct ListTasksParams {
     /// OPTIONAL. Page token is used to retrieve the next page of results. If unspecified, returns the first page of results. The value can be found in the `next_page_token` field of the last returned result of ListTasks
     pub page_token: Option<String>,
     /// OPTIONAL. Affects the fields included in the returned Task messages.  `MINIMAL`: Task message will include ONLY the fields: - `tesTask.Id` - `tesTask.State`  `BASIC`: Task message will include all fields EXCEPT: - `tesTask.ExecutorLog.stdout` - `tesTask.ExecutorLog.stderr` - `tesInput.content` - `tesTaskLog.system_logs`  `FULL`: Task message includes all fields.
-    pub view: Option<String>
+    pub view: Option<String>,
 }
 
 #[derive(Debug)]
@@ -42,48 +41,44 @@ pub struct Task {
 
 impl Task {
     pub fn new(id: String, transport: Transport) -> Self {
-        Task {
-            id,
-            transport,
-        }
+        Task { id, transport }
     }
 
     pub async fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
-        let task_id=&self.id;
-        let view= "FULL";
+        let task_id = &self.id;
+        let view = "FULL";
         let url = format!("/tasks/{}?view={}", task_id, view);
         // let params = [("view", view)];
         // let params_value = serde_json::json!(params);
         // let response = self.transport.get(&url, Some(params_value)).await;
         let response = self.transport.get(&url, None).await;
         match response {
-        Ok(resp_str) => {
-            let task: TesTask = from_str(&resp_str)?;
-            Ok(task.state.unwrap())
-        }
-        Err(e) => Err(e),
+            Ok(resp_str) => {
+                let task: TesTask = from_str(&resp_str)?;
+                Ok(task.state.unwrap())
+            }
+            Err(e) => Err(e),
         }
     }
-    
-    pub async fn cancel(&self) -> Result<serde_json::Value , Box<dyn std::error::Error>> {
-        
-        let id=&self.id;
-        let id=&urlencode(id);
+
+    pub async fn cancel(&self) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        let id = &self.id;
+        let id = &urlencode(id);
         let url = format!("/tasks/{}:cancel", id);
-        // let url= &urlencode(url); 
+        // let url= &urlencode(url);
         // println!("{:?}",url);
         let response = self.transport.post(&url, None).await;
         // println!("the response is: {:?}",response);
         match response {
-        Ok(resp_str) => {
-            let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
-            match parsed_json {
-                Ok(json) => Ok(json),
-                Err(e) => Err(Box::new(e)),
+            Ok(resp_str) => {
+                let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
+                match parsed_json {
+                    Ok(json) => Ok(json),
+                    Err(e) => Err(Box::new(e)),
+                }
             }
+            Err(e) => Err(e),
         }
-        Err(e) => Err(e),
-    }
     }
 }
 #[derive(Debug)]
@@ -101,7 +96,7 @@ impl TES {
         let service_info = ServiceInfo::new(config).unwrap();
 
         let resp = service_info.get().await;
-        
+
         // println!("artifact: {}",resp.clone().unwrap().r#type.artifact);
         let instance = TES {
             config: config.clone(),
@@ -140,15 +135,20 @@ impl TES {
         match response {
             Ok(response_body) => {
                 let v: serde_json::Value = serde_json::from_str(&response_body)?;
-                
+
                 // Access the `id` field
-                let task_id = v.get("id").and_then(|v| v.as_str()).unwrap_or_default().trim_matches('"').to_string();
-                
-                let task=Task{
+                let task_id = v
+                    .get("id")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or_default()
+                    .trim_matches('"')
+                    .to_string();
+
+                let task = Task {
                     id: task_id,
                     transport: self.transport.clone(),
                 };
-                Ok(task)                         
+                Ok(task)
             }
             Err(e) => {
                 log::error!("Error: {}", e);
@@ -158,22 +158,24 @@ impl TES {
     }
 
     pub async fn get(&self, view: &str, id: &str) -> Result<TesTask, Box<dyn std::error::Error>> {
-        let task_id=id;
+        let task_id = id;
         let url = format!("/tasks/{}?view={}", task_id, view);
         // let params = [("view", view)];
         // let params_value = serde_json::json!(params);
         // let response = self.transport.get(&url, Some(params_value)).await;
         let response = self.transport.get(&url, None).await;
         match response {
-        Ok(resp_str) => {
-            let task: TesTask = from_str(&resp_str)?;
-            Ok(task)
-        }
-        Err(e) => Err(e),
+            Ok(resp_str) => {
+                let task: TesTask = from_str(&resp_str)?;
+                Ok(task)
+            }
+            Err(e) => Err(e),
         }
     }
-    pub async fn list_tasks(&self, params: Option<ListTasksParams>) -> Result<TesListTasksResponse, Box<dyn std::error::Error>> {
-        
+    pub async fn list_tasks(
+        &self,
+        params: Option<ListTasksParams>,
+    ) -> Result<TesListTasksResponse, Box<dyn std::error::Error>> {
         let params_value = params.map(|p| {
             json!({
                 "name_prefix": p.name_prefix,
@@ -192,27 +194,26 @@ impl TES {
         } else {
             self.transport.get("/tasks", None).await
         };
-        
+
         match response {
-        Ok(resp_str) => {
-            let task: TesListTasksResponse = from_str(&resp_str)?;
-            Ok(task)
-        }
-        Err(e) => Err(e),
+            Ok(resp_str) => {
+                let task: TesListTasksResponse = from_str(&resp_str)?;
+                Ok(task)
+            }
+            Err(e) => Err(e),
         }
     }
-    
 }
 
 #[cfg(test)]
 mod tests {
     use crate::configuration::Configuration;
-    use crate::tes::Task;
     use crate::tes::models::TesTask;
+    use crate::tes::ListTasksParams;
+    use crate::tes::Task;
+    use crate::tes::TesState;
     use crate::tes::TES;
     use crate::test_utils::{ensure_funnel_running, setup};
-    use crate::tes::TesState;
-    use crate::tes::ListTasksParams;
     // use crate::test_utils::{ensure_funnel_running, setup, FUNNEL_PORT};
     // use crate::tes::models::TesCreateTaskResponse;
 
@@ -251,7 +252,7 @@ mod tests {
         config.set_base_path(&funnel_url);
         match TES::new(&config).await {
             Ok(tes) => {
-                let task=Task::new(taskid.clone(),tes.transport);
+                let task = Task::new(taskid.clone(), tes.transport);
                 let status = task.status().await;
                 println!("Task: {:?}", status);
                 // Adding an assertion for the Ok variant
@@ -266,14 +267,12 @@ mod tests {
                                 panic!("Unexpected state: {:?}", state);
                             }
                         }
-
                     }
                     Err(err) => {
                         panic!("Task status returned an error: {:?}", err);
                     }
                 }
-
-            },
+            }
             Err(e) => {
                 // Handle the error e
                 println!("Error creating TES instance: {:?}", e);
@@ -292,15 +291,15 @@ mod tests {
         config.set_base_path(&funnel_url);
         match TES::new(&config).await {
             Ok(tes) => {
-                let task=Task::new(taskid.clone(), tes.transport);
-                let cancel= task.cancel().await;
+                let task = Task::new(taskid.clone(), tes.transport);
+                let cancel = task.cancel().await;
                 assert!(cancel.is_ok());
-            },
+            }
             Err(e) => {
                 // Handle the error e
                 println!("Error creating TES instance: {:?}", e);
             }
-        }   
+        }
     }
 
     #[tokio::test]
@@ -324,13 +323,13 @@ mod tests {
                     view: Some("BASIC".to_string()),
                 };
 
-                let list= tes.list_tasks(Some(params)).await;
-                println!("{:?}",list);
-            },
+                let list = tes.list_tasks(Some(params)).await;
+                println!("{:?}", list);
+            }
             Err(e) => {
                 // Handle the error e
                 println!("Error creating TES instance: {:?}", e);
             }
-        }   
+        }
     }
 }

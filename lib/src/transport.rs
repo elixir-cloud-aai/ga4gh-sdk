@@ -39,20 +39,17 @@ impl Transport {
             )));
         }
 
-        let mut request_builder = self
-            .client
-            .request(method, &full_url)
-            .header(
-                reqwest::header::USER_AGENT,
-                self.config.user_agent.clone().unwrap_or_default(),
-            );
-        
+        let mut request_builder = self.client.request(method, &full_url).header(
+            reqwest::header::USER_AGENT,
+            self.config.user_agent.clone().unwrap_or_default(),
+        );
+
         if let Some(ref params_value) = params {
             request_builder = request_builder.query(params_value);
         }
 
         if let Some(ref data_value) = data {
-             // Figure out some way to filter out `Null` values of data_value 
+            // Figure out some way to filter out `Null` values of data_value
             request_builder = request_builder.json(&data_value);
         }
 
@@ -80,8 +77,13 @@ impl Transport {
             .await
     }
 
-    pub async fn post(&self, endpoint: &str, data: Option<Value>) -> Result<String, Box<dyn Error>> {
-    self.request(reqwest::Method::POST, endpoint, data, None).await
+    pub async fn post(
+        &self,
+        endpoint: &str,
+        data: Option<Value>,
+    ) -> Result<String, Box<dyn Error>> {
+        self.request(reqwest::Method::POST, endpoint, data, None)
+            .await
     }
 
     pub async fn put(&self, endpoint: &str, data: Value) -> Result<String, Box<dyn Error>> {
