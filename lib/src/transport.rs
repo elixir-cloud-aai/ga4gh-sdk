@@ -27,19 +27,12 @@ impl Transport {
         params: Option<Value>,
     ) -> Result<String, Box<dyn Error>> {
         let full_url = format!("{}{}", self.config.base_path, endpoint);
-        let url = reqwest::Url::parse(&full_url);
-        if url.is_err() {
-            error!(
-                "Invalid endpoint (shouldn't contain base url): {}",
-                endpoint
-            );
-            return Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "Invalid endpoint",
-            )));
-        }
+        let url = reqwest::Url::parse(&full_url).map_err(|_| {
+            error!("Invalid endpoint (shouldn't contain base url): {}", endpoint);
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid endpoint")) as Box<dyn std::error::Error>
+        })?;
 
-        let mut request_builder = self.client.request(method, &full_url).header(
+        let mut request_builder = self.client.request(method, url).header(
             reqwest::header::USER_AGENT,
             self.config.user_agent.clone().unwrap_or_default(),
         );
@@ -48,21 +41,24 @@ impl Transport {
             request_builder = request_builder.query(params_value);
         }
 
-        if let Some(ref data_value) = data {
-            request_builder = request_builder.json(&data_value);
+        if let Some(ref data) = data {
+            request_builder = request_builder.json(&data);
         }
 
-        let resp = request_builder.send().await?;
+        let resp = request_builder.send().await.map_err(|e| {
+	            eprintln!("HTTP request failed: {}", e);
+	            e
+	        })?;
 
         let status = resp.status();
-        let content = resp.text().await?;
+        let content = resp.text().await.map_err(|e| format!("Failed to read response text: {}", e))?;
 
         if status.is_success() {
             Ok(content)
         } else {
             Err(Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                content,
+                format!("Request failed with status: {}. Response: {}", status, content),
             )))
         }
     }

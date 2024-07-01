@@ -70,15 +70,15 @@ impl Task {
         let response = self.transport.post(&url, None).await;
         // println!("the response is: {:?}",response);
         match response {
-            Ok(resp_str) => {
-                let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
-                match parsed_json {
-                    Ok(json) => Ok(json),
-                    Err(e) => Err(Box::new(e)),
-                }
-            }
-            Err(e) => Err(e),
-        }
+	    Ok(resp_str) => {
+	        let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
+	        match parsed_json {
+	            Ok(json) => Ok(json),
+	            Err(e) => Err(format!("Failed to parse JSON: {}", e).into()),
+	        }
+	    }
+	    Err(e) => Err(format!("HTTP request failed: {}", e).into()),
+	}
     }
 }
 #[derive(Debug)]
@@ -93,7 +93,7 @@ pub struct TES {
 impl TES {
     pub async fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
         let transport = Transport::new(config);
-        let service_info = ServiceInfo::new(config).unwrap();
+        let service_info = ServiceInfo::new(config)?;
 
         let resp = service_info.get().await;
 
@@ -113,8 +113,10 @@ impl TES {
 
     fn check(&self) -> bool {
         let resp = &self.service;
-        return resp.as_ref().unwrap().r#type.artifact == "tes";
-        // true
+        match resp.as_ref() {
+            Ok(service) => service.r#type.artifact == "tes",
+            Err(_) => false, // or handle the error as appropriate
+        }
     }
 
     pub async fn create(
@@ -150,10 +152,10 @@ impl TES {
                 };
                 Ok(task)
             }
-            Err(e) => {
-                log::error!("Error: {}", e);
-                Err(e)
-            }
+            Err(e) => Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to post task: {}", e),
+            ))),
         }
     }
 
@@ -244,9 +246,8 @@ mod tests {
                 return Err(e);
             }
         };
-
-        let task_json =
-            std::fs::read_to_string("./lib/sample/grape.tes").expect("Unable to read file");
+        let file_path = std::env::var("TASK_FILE_PATH").unwrap_or_else(|_| "./lib/sample/grape.tes".to_string());
+        let task_json = std::fs::read_to_string(file_path).expect("Unable to read file");
         let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
 
         let task = tes.create(task).await?;
@@ -287,7 +288,7 @@ mod tests {
         setup();
 
         let (task, _tes) = &create_task().await.expect("Failed to create task");
-        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
+        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
 
         let cancel = task.cancel().await;
         assert!(cancel.is_ok());
