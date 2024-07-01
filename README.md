@@ -2,7 +2,7 @@
 
 ## Building
 
-First, clone the repository, and then run the following command to auto-generate models using OpenAPI specifications:
+First, clone the repository, and then run the following command to automatically generate models using OpenAPI specifications:
 ```
 bash ./build-models.sh
 ```

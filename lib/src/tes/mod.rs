@@ -265,8 +265,8 @@ mod tests {
         setup();
 
         let (task, _tes) = create_task().await.expect("Failed to create task");
-        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // doube check if it's a correct assertion
-    
+        assert!(!task.id.is_empty(), "Task ID should not be empty");
+
         let status = task.status().await;
         match status {
             Ok(state) => {
