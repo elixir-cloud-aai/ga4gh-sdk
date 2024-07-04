@@ -1,7 +1,7 @@
 [package]
 name = "ga4gh-sdk"
 version = "0.1.0"
-authors = ["Aarav Mehta <aarav05mehta@gmail.com>", "ELIXIR Cloud & AAI <cloud-service@elixir-europe.org>", "GENXT <info@genxt.network>"]
+authors = ["Aarav Mehta <aarav05mehta@gmail.com>", "Pavel Nikonorov", "ELIXIR Cloud & AAI <cloud-service@elixir-europe.org>"]
 edition = "2021"
 description = "Generic SDK and CLI for GA4GH API services"
 license = "Apache-2.0"

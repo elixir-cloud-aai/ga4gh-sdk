@@ -248,7 +248,7 @@ mod tests {
                 return Err(e);
             }
         };
-        let file_path = "./tests/grape.tes".to_string();
+        let file_path = "./tests/sample.tes".to_string();
         let task_json = std::fs::read_to_string(file_path).expect("Unable to read file");
         let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
 
