@@ -69,10 +69,7 @@ impl Task {
         let id = &self.id;
         let id = &urlencode(id);
         let url = format!("/tasks/{}:cancel", id);
-        // let url= &urlencode(url);
-        // println!("{:?}",url);
         let response = self.transport.post(&url, None).await;
-        // println!("the response is: {:?}",response);
         match response {
 	    Ok(resp_str) => {
 	        let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
@@ -92,7 +89,6 @@ pub struct TES {
     service: Result<Service, Box<dyn std::error::Error>>,
     transport: Transport,
 }
-// *** see question above
 
 impl TES {
     pub async fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
@@ -101,25 +97,22 @@ impl TES {
 
         let resp = service_info.get().await;
 
-        // println!("artifact: {}",resp.clone().unwrap().r#type.artifact);
         let instance = TES {
             config: config.clone(),
             transport,
             service: resp,
         };
 
-        if instance.check() {
-            Ok(instance)
-        } else {
-            Err("The endpoint is not an instance of TES".into())
-        }
+        instance.check()?; // Propagate the error if check() fails
+        Ok(instance)
     }
 
-    fn check(&self) -> bool {
+    fn check(&self) -> Result<(), String> {
         let resp = &self.service;
         match resp.as_ref() {
-            Ok(service) => service.r#type.artifact == "tes",
-            Err(_) => false, // or handle the error as appropriate
+            Ok(service) if service.r#type.artifact == "tes" => Ok(()),
+            Ok(_) => Err("The endpoint is not an instance of TES".into()),
+            Err(_) => Err("Error accessing the service".into()),
         }
     }
 
@@ -128,11 +121,10 @@ impl TES {
         task: TesTask, /*, params: models::TesTask*/
     ) -> Result<Task, Box<dyn std::error::Error>> {
         // First, check if the service is of TES class
-        if !self.check() {
-            // If check fails, log an error and return an Err immediately
-            log::error!("Service check failed");
-            return Err("Service check failed".into());
-        }
+        self.check().map_err(|e| {
+            log::error!("Service check failed: {}", e);
+            e
+        })?;
         // todo: version in url based on serviceinfo or user config
         let response = self
             .transport
@@ -256,7 +248,7 @@ mod tests {
                 return Err(e);
             }
         };
-        let file_path = std::env::var("TASK_FILE_PATH").unwrap_or_else(|_| "./lib/sample/grape.tes".to_string());
+        let file_path = "./tests/grape.tes".to_string();
         let task_json = std::fs::read_to_string(file_path).expect("Unable to read file");
         let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
 
@@ -298,7 +290,7 @@ mod tests {
         setup();
 
         let (task, _tes) = &create_task().await.expect("Failed to create task");
-        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
+        assert!(!task.id.is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
 
         let cancel = task.cancel().await;
         assert!(cancel.is_ok());
@@ -309,7 +301,7 @@ mod tests {
         setup();
 
         let (task, tes) = &create_task().await.expect("Failed to create task");
-        assert!(!task.id.clone().is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
+        assert!(!task.id.is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
 
         let params: ListTasksParams = ListTasksParams {
             name_prefix: None,

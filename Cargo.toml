@@ -1,9 +1,9 @@
 [package]
-name = "lib"
+name = "ga4gh-sdk"
 version = "0.1.0"
 authors = ["Aarav Mehta"]
 edition = "2021"
-description = "A library to interact with the different API's of GA4GH"
+description = "Generic SDK and CLI for GA4GH API services"
 license = "Apache-2.0"
 repository = "https://github.com/elixir-cloud-aai/ga4gh-sdk.git"
 
@@ -27,5 +27,5 @@ mockito = "0.31"
 mockall = "0.10.2"
 
 [lib]
-name = "my_project"
+name = "ga4gh_sdk"
 path = "lib/src/lib.rs"
