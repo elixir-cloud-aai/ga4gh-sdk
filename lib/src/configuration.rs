@@ -9,7 +9,13 @@ pub struct Configuration {
     // TODO: take an oauth2 token source, similar to the go one
 }
 
-pub type BasicAuth = (String, Option<String>);
+// Check whether defining BasicAuth works like this or not, else revert to the basic definition commented out
+#[derive(Debug, Clone)]
+pub struct BasicAuth {
+    pub username: String,
+    pub password: Option<String>,
+}
+// pub type BasicAuth = (String, Option<String>);
 
 #[derive(Debug, Clone)]
 pub struct ApiKey {
@@ -21,12 +27,13 @@ impl Configuration {
     pub fn new(
         base_path: String,
         user_agent: Option<String>,
+        basic_auth: Option<BasicAuth>,
         oauth_access_token: Option<String>,
     ) -> Self {
         Configuration {
             base_path,
             user_agent,
-            basic_auth: None,
+            basic_auth,
             oauth_access_token,
             bearer_access_token: None,
             api_key: None,

@@ -119,7 +119,7 @@ mod tests {
             .with_body(r#"{"message": "success"}"#)
             .create();
 
-        let config = Configuration::new(base_url.clone(), None, None);
+        let config = Configuration::new(base_url.clone(),None, None, None);
         let transport = Transport::new(&config.clone());
         let response = transport.get("/test", None).await;
 
