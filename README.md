@@ -25,6 +25,10 @@ or, you can run using cargo nextest using
 ```
 cargo nextest run
 ```
+For checking the unit converage, you can run:
+```
+cargo llvm-cov nextest
+```
 
 To test the CI/CD workflow locally, install `act` and run the following command:
 ```

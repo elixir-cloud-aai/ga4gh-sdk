@@ -24,7 +24,7 @@ generate_openapi_models() {
 
     # Remove the temporary directory at the end of the script
     trap 'rm -rf "$TEMP_OUTPUT_DIR"' EXIT
-
+    
     # Run the OpenAPI generator CLI
     npx openapi-generator-cli generate -g rust \
         -i "$OPENAPI_SPEC_PATH" \
