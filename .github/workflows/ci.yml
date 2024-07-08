@@ -14,6 +14,10 @@ jobs:
       OPENSSL_INCLUDE_DIR: /usr/include/openssl	
 
     steps:	
+    - name: Install dependencies	
+      run: |	
+        apt-get update	
+        apt-get install -y curl git build-essential libssl-dev 	
 
     - name: Install Node.js # required for build-models.sh
       run: |
