@@ -14,10 +14,16 @@ jobs:
       OPENSSL_INCLUDE_DIR: /usr/include/openssl	
 
     steps:	
-    - name: Install dependencies	
+    - name: Install Rust	
       run: |	
         apt-get update	
         apt-get install -y curl git build-essential libssl-dev 	
+        if ! command -v rustup &> /dev/null # might not be installed while executing using `act`	
+        then	
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y	
+            . $HOME/.cargo/env	
+        fi	
+        rustup update stable	
 
     - name: Install Node.js # required for build-models.sh
       run: |
