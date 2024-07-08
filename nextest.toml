@@ -1,0 +1,15 @@
+[profile.default]
+retries = 1
+
+[script-pre-commands]
+[[profile.default]]
+commands = [
+    { cmd = "sh", args = ["-c", "if ! ps aux | grep '[f]unnel server run'; then echo 'Funnel server is not running. Starting it now...'; export PATH=$PATH:~/go/bin; funnel server run --Server.HostName=localhost --Server.HTTPPort=8000 > funnel.log 2>&1 & fi"] },
+    { cmd = "sh", args = ["-c", "while ! curl -s http://localhost:8000/healthz > /dev/null; do echo 'Waiting for Funnel server...'; sleep 1; done; echo 'Funnel server is running.'"] }
+]
+
+[script-post-commands]
+[[profile.default]]
+commands = [
+    # Add any post-test teardown commands here if needed
+]

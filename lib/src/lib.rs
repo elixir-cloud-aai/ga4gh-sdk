@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate serde_derive;
+// extern crate serde_derive;
 
 #[cfg(test)]
 mod test_utils;

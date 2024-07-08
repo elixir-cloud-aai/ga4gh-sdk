@@ -17,6 +17,7 @@
 if ! ps aux | grep '[f]unnel server run'; then
     # If it's not running, start it
     echo "Funnel server is not running. Starting it now..."
+    export PATH=$PATH:~/go/bin
     funnel server run --Server.HostName=localhost --Server.HTTPPort=8000 > funnel.log 2>&1 &
 else
     echo "Funnel server is already running."

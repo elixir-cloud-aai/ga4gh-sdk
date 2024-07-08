@@ -21,6 +21,10 @@ Once you have installed Funnel, you can run the tests. This will automatically r
 ```
 bash ./run-tests.sh
 ```
+or, you can run using cargo nextest using
+```
+cargo nextest run
+```
 
 To test the CI/CD workflow locally, install `act` and run the following command:
 ```
