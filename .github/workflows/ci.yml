@@ -1,4 +1,4 @@
-name: CI	
+name: GitHub CI/CD Workflow	
 
 on: [push, pull_request]	
 
@@ -14,59 +14,6 @@ jobs:
       OPENSSL_INCLUDE_DIR: /usr/include/openssl	
 
     steps:	
-
-    - name: Cache Rust dependencies	
-      uses: actions/cache@v3
-      with:	
-        path: ~/.cargo	
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}	
-        restore-keys: ${{ runner.os }}-cargo-	
-
-    - name: Cache Rust build output	
-      uses: actions/cache@v3
-      with:	
-        path: target	
-        key: ${{ runner.os }}-build-${{ hashFiles('**/Cargo.lock') }}	
-        restore-keys: ${{ runner.os }}-build-	
-
-    - name: Cache Node.js dependencies	
-      uses: actions/cache@v3	
-      with:	
-        path: ~/.npm	
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}	
-        restore-keys: ${{ runner.os }}-node-	
-
-    - name: Cache Maven dependencies	
-      uses: actions/cache@v3
-      with:	
-        path: ~/.m2/repository	
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}	
-        restore-keys: ${{ runner.os }}-maven-	
-
-    - name: Cache Go modules	
-      uses: actions/cache@v3
-      with:	
-        path: ~/.cache/go-build	
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}	
-        restore-keys: ${{ runner.os }}-go-	
-
-    - name: Cache Funnel dependencies	
-      uses: actions/cache@v3
-      with:	
-        path: ~/funnel/build	
-        key: ${{ runner.os }}-funnel-${{ hashFiles('**/funnel/*') }}	
-        restore-keys: ${{ runner.os }}-funnel-	
-
-    - name: Install Rust	
-      run: |	
-        apt-get update	
-        apt-get install -y curl git build-essential libssl-dev 	
-        if ! command -v rustup &> /dev/null # might not be installed while executing using `act`	
-        then	
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y	
-            . $HOME/.cargo/env	
-        fi	
-        rustup update stable	
 
     - name: Install Node.js # required for build-models.sh
       run: |

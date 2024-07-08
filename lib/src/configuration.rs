@@ -6,7 +6,6 @@ pub struct Configuration {
     pub oauth_access_token: Option<String>,
     pub bearer_access_token: Option<String>,
     pub api_key: Option<ApiKey>,
-    // TODO: take an oauth2 token source, similar to the go one
 }
 
 // Check whether defining BasicAuth works like this or not, else revert to the basic definition commented out
