@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
@@ -13,13 +11,6 @@ get_git_repo_name() {
     echo "$repo_name"
 }
 
-# repo_name=$(get_git_repo_name)
-# if [ "$repo_name" != "ga4gh-sdk" ]; then
-#     echo "This script must be run from the 'ga4gh-sdk' repository."
-#     exit 1
-# fi
-
-# cd $(git rev-parse --show-toplevel)
 SCRIPT_DIR="$(pwd)"
 
 generate_openapi_models() {
@@ -39,9 +30,6 @@ generate_openapi_models() {
         -i "$OPENAPI_SPEC_PATH" \
         -o "$TEMP_OUTPUT_DIR" \
         --additional-properties=useSingleRequestParameter=true 
-        #--skip-validate-spec
-        # --global-property models,modelDocs=false,apiDocs=false,apiTests=false,modelTests=false \
-    #,packageName=$API_NAME
 
     # Check if the generation was successful
     if [ $? -ne 0 ]; then
