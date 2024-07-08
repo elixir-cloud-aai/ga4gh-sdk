@@ -18,10 +18,10 @@ jobs:
       run: |	
         apt-get update	
         apt-get install -y curl git build-essential libssl-dev 	
-
-    - uses: actions/checkout@v4 # checkout the repository	
+        
+    - uses: actions/checkout@v2 # checkout the repository	
     - name: Install Rust	
-      run: |	
+      run: |
         rustup update stable	
 
     - name: Install Node.js # required for build-models.sh
