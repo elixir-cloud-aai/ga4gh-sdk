@@ -27,14 +27,7 @@ jobs:
       with:	
         path: target	
         key: ${{ runner.os }}-build-${{ hashFiles('**/Cargo.lock') }}	
-        restore-keys: ${{ runner.os }}-build-	
-
-    - name: Cache Node.js dependencies	
-      uses: actions/cache@v3	
-      with:	
-        path: ~/.npm	
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}	
-        restore-keys: ${{ runner.os }}-node-	
+        restore-keys: ${{ runner.os }}-build-		
 
     - name: Cache Maven dependencies	
       uses: actions/cache@v3
@@ -56,22 +49,12 @@ jobs:
         path: ~/funnel/build	
         key: ${{ runner.os }}-funnel-${{ hashFiles('**/funnel/*') }}	
         restore-keys: ${{ runner.os }}-funnel-	
-
+ 
+    - uses: actions/checkout@v4 # checkout the repository	
     - name: Install Rust	
-      run: |	
-        apt-get update	
-        apt-get install -y curl git build-essential libssl-dev 	
-        if ! command -v rustup &> /dev/null # might not be installed while executing using `act`	
-        then	
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y	
-            . $HOME/.cargo/env	
-        fi	
-        rustup update stable	
-
-    - name: Install Node.js # required for build-models.sh
       run: |
-        curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-        apt-get install -y nodejs
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Set up JDK 11 # required for build-models.sh	
       uses: actions/setup-java@v3
