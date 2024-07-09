@@ -1,6 +1,13 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
+# Ensure the OpenAPI Generator JAR file is set up
+mkdir -p ~/bin/openapitools
+OPENAPI_GENERATOR_JAR=~/bin/openapitools/openapi-generator-cli.jar
+if [ ! -f "$OPENAPI_GENERATOR_JAR" ]; then
+    curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar -o "$OPENAPI_GENERATOR_JAR"
+fi
+
 get_git_repo_name() {
     # Extract the URL of the remote "origin"
     url=$(git config --get remote.origin.url)
@@ -25,8 +32,8 @@ generate_openapi_models() {
     # Remove the temporary directory at the end of the script
     trap 'rm -rf "$TEMP_OUTPUT_DIR"' EXIT
     
-    # Run the OpenAPI generator CLI
-    npx openapi-generator-cli generate -g rust \
+    # Run the OpenAPI generator CLI using the JAR file
+    java -jar "$OPENAPI_GENERATOR_JAR" generate -g rust \
         -i "$OPENAPI_SPEC_PATH" \
         -o "$TEMP_OUTPUT_DIR" \
         --additional-properties=useSingleRequestParameter=true 
@@ -60,12 +67,6 @@ generate_openapi_models() {
 
     echo "OpenAPI generation complete. Models copied to $DESTINATION_DIR"
 }
-
-# Check if OpenAPI Generator CLI is installed
-if ! npx openapi-generator-cli version > /dev/null 2>&1; then
-    # Install OpenAPI Generator CLI locally
-    npm install -g @openapitools/openapi-generator-cli
-fi
 
 generate_openapi_models \
     "https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml" \
