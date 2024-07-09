@@ -1,5 +1,6 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
+set -u
 
 # Ensure the OpenAPI Generator JAR file is set up
 mkdir -p ~/bin/openapitools
