@@ -9,7 +9,7 @@ pub struct ServiceInfo {
 
 impl ServiceInfo {
     pub fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
-        let transport = &Transport::new(config);
+        let transport = Transport::new(config);
         let instance = ServiceInfo {
             transport: transport.clone(),
         };
@@ -27,7 +27,7 @@ impl ServiceInfo {
                 }
             },
             Err(e) => {
-                log::error!("Error: {}", e);
+                log::error!("Failed to deserialize response: {}. Response body: {}", e, response_body);
                 Err(e)
             }
         }
@@ -55,7 +55,7 @@ mod tests {
                 println!("Service Info: {:?}", service);
             }
             Err(e) => {
-                println!("Failed to get service info: {}", e);
+                log::error!("ServiceInfo error in module 'mod.rs': {}", e);
             }
         }
     }
