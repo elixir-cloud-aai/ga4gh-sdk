@@ -37,11 +37,6 @@ impl Transport {
         if let Some(ref user_agent) = self.config.user_agent {
             request_builder = request_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
         }
-        
-        // let mut request_builder = self.client.request(method, url).header(
-        //     reqwest::header::USER_AGENT,
-        //     self.config.user_agent.clone().unwrap_or_default(),
-        // );
 
         if let Some(ref params_value) = params {
             // Validate or log params_value before setting it as query parameters
