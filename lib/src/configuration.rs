@@ -40,6 +40,9 @@ impl Configuration {
     }
 
     pub fn set_base_path(&mut self, base_path: &str) -> &mut Self {
+        if base_path.is_empty() || !base_path.starts_with('/') {
+            panic!("Invalid base path");
+        }
         self.base_path = base_path.to_string();
         self
     }
