@@ -1,3 +1,4 @@
+workspace = { members = ["cli/ga4gh-sdk-cli"] }
 [package]
 name = "ga4gh-sdk"
 version = "0.1.0"
