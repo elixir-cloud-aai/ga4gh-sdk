@@ -21,11 +21,11 @@ Once you have installed Funnel, you can run the tests. This will automatically r
 ```
 bash ./run-tests.sh
 ```
-or, you can run using cargo nextest using
+or, you can run using:
 ```
 cargo nextest run
 ```
-For checking the unit converage, you can run:
+For checking the unit coverage, you can run:
 ```
 cargo llvm-cov nextest
 ```
