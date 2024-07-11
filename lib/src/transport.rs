@@ -27,8 +27,8 @@ impl Transport {
         params: Option<Value>,
     ) -> Result<String, Box<dyn Error>> {
         let full_url = format!("{}{}", self.config.base_path, endpoint);
-        let url = reqwest::Url::parse(&full_url).map_err(|_| {
-            error!("Invalid endpoint (shouldn't contain base url): {}", endpoint);
+        let url = reqwest::Url::parse(&full_url).map_err(|e| {
+            error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
             Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid endpoint")) as Box<dyn std::error::Error>
         })?;
 
@@ -48,7 +48,11 @@ impl Transport {
         }
 
         if let Some(ref data) = data {
-            request_builder = request_builder.json(&data);
+            if serde_json::to_string(&data).is_ok() {
+                request_builder = request_builder.json(&data);
+            } else {
+                eprintln!("Parameters are invalid, and can't convert to JSON");
+            }
         }
 
         let resp = request_builder.send().await.map_err(|e| {
@@ -57,7 +61,9 @@ impl Transport {
 	        })?;
 
         let status = resp.status();
-        let content = resp.text().await.map_err(|e| format!("Failed to read response text: {}", e))?;
+        let content = resp.text().await.map_err(|e| {
+            std::io::Error::new(std::io::ErrorKind::InvalidData, format!("Failed to read response text: {}", e))
+        })?;
 
         if status.is_success() {
             Ok(content)
