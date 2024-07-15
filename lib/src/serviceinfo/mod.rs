@@ -17,7 +17,10 @@ impl ServiceInfo {
     }
 
     pub async fn get(&self) -> Result<models::Service, Box<dyn std::error::Error>> {
-        let response = self.transport.get("/service-info", None).await;
+        let response = tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            self.transport.get("/service-info", None)
+        ).await??;
         match response {
             Ok(response_body) => match serde_json::from_str::<models::Service>(&response_body) {
                 Ok(service) => Ok(service),
@@ -44,7 +47,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_service_info_from_funnel() {
         setup();
-        let mut config = Configuration::default();
+        let config = Configuration::default();
         let funnel_url = ensure_funnel_running().await;
         config.set_base_path(&funnel_url);
         let service_info = ServiceInfo::new(&config).unwrap();
@@ -55,7 +58,7 @@ mod tests {
                 println!("Service Info: {:?}", service);
             }
             Err(e) => {
-                log::error!("ServiceInfo error in module 'mod.rs': {}", e);
+                log::error!("ServiceInfo error in 'lib/src/serviceinfo/mod.rs' during operation: {}", e);
             }
         }
     }
