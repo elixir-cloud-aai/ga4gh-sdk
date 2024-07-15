@@ -26,7 +26,9 @@ impl Transport {
         data: Option<Value>,
         params: Option<Value>,
     ) -> Result<String, Box<dyn Error>> {
-        let full_url = format!("{}{}", self.config.base_path, endpoint);
+        let base_url = reqwest::Url::parse(&self.config.base_path)?;
+        let url = base_url.join(endpoint).map_err(|e| {
+            error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
         let url = reqwest::Url::parse(&full_url).map_err(|e| {
             error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
             Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid endpoint")) as Box<dyn std::error::Error>
@@ -52,7 +54,7 @@ impl Transport {
             if serde_json::to_string(&data).is_ok() {
                 request_builder = request_builder.json(&data);
             } else {
-                eprintln!("Parameters are invalid, and can't convert to JSON");
+                log::error!("Parameters are invalid, and can't convert to JSON");
             }
         }
 
