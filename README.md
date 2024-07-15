@@ -33,4 +33,6 @@ cargo llvm-cov nextest
 To test the CI/CD workflow locally, install `act` and run the following command:
 ```
 act -j build --container-architecture linux/amd64 -P ubuntu-latest=ubuntu:24.04 --reuse
+# Note: The specified Ubuntu version (24.04) may change in the future. 
+# Please check for the latest version when running this command.
 ```
