@@ -205,6 +205,7 @@ mod tests {
         let mut config = Configuration::default();
         let funnel_url = ensure_funnel_running().await;
         config.set_base_path(&funnel_url);
+        println!("{:?}", funnel_url);
         let tes = match TES::new(&config).await {
             Ok(tes) => tes,
             Err(e) => {

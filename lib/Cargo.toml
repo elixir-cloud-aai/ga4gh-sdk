@@ -33,4 +33,4 @@ cargo-nextest = "0.9.30"
 
 [lib]
 name = "ga4gh_sdk"
-path = "lib/src/lib.rs"
+path = "src/lib.rs"
