@@ -39,10 +39,7 @@ impl Configuration {
         }
     }
 
-    pub fn set_base_path(&mut self, base_path: &str) -> &mut Self {
-        if base_path.is_empty() {
-            panic!("Empty base path");
-        }
+    pub fn set_base_path(&mut self, base_path: &str) -> &mut Self {        
         self.base_path = base_path.to_string();
         self
     }
