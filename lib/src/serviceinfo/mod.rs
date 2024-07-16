@@ -25,7 +25,7 @@ impl ServiceInfo {
             Ok(response_body) => match serde_json::from_str::<models::Service>(&response_body) {
                 Ok(service) => Ok(service),
                 Err(e) => {
-                    log::error!("Failed to deserialize response: {}. Response body: {}", e, response_body);
+                    log::error!("Failed to deserialize response. Error: {}", e);
                     Err(e.into())
                 }
             },
