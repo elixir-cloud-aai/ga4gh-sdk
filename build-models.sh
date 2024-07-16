@@ -1,11 +1,13 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
+set -o pipefail
 
 # Ensure the OpenAPI Generator JAR file is set up
 mkdir -p ~/bin/openapitools
 OPENAPI_GENERATOR_JAR=~/bin/openapitools/openapi-generator-cli.jar
 if [ ! -f "$OPENAPI_GENERATOR_JAR" ]; then
     curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar -o "$OPENAPI_GENERATOR_JAR"
+    echo "d41d8cd98f00b204e9800998ecf8427e  $OPENAPI_GENERATOR_JAR" | sha256sum -c -
 fi
 
 get_git_repo_name() {
@@ -50,7 +52,13 @@ generate_openapi_models() {
     echo "TEMP_OUTPUT_DIR is $TEMP_OUTPUT_DIR"
 
     # Modify the import statements in each generated file
-    SED_RULE="s/use crate::models;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::$API_NAME::models;/"
+SED_RULE="s/^use\s\+crate::models\s*;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::$API_NAME::models;/"
+    find "$TEMP_OUTPUT_DIR" -name '*.rs' > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Error: 'find' command failed."
+        exit 1
+    fi
+
     for file in $(find "$TEMP_OUTPUT_DIR" -name '*.rs'); do
         if [[ "$OSTYPE" == "darwin"* ]]; then
             # macOS (BSD) sed syntax
@@ -68,10 +76,14 @@ generate_openapi_models() {
     echo "OpenAPI generation complete. Models copied to $DESTINATION_DIR"
 }
 
+OPENAPI_URL_SERVICEINFO="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml"
+OPENAPI_URL_TES="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml"
+
 generate_openapi_models \
-    "https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml" \
+    "$OPENAPI_URL_SERVICEINFO" \
     "serviceinfo" "$SCRIPT_DIR/lib/src/serviceinfo/"
 
 generate_openapi_models \
-    "https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml" \
+    "$OPENAPI_URL_TES" \
+    "tes" "$SCRIPT_DIR/lib/src/tes/"
     "tes" "$SCRIPT_DIR/lib/src/tes/"
