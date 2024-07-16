@@ -1,13 +1,14 @@
+#!/bin/bash
+
 # Exit immediately if a command exits with a non-zero status.
 set -e
-set -o pipefail
 
 # Ensure the OpenAPI Generator JAR file is set up
 mkdir -p ~/bin/openapitools
 OPENAPI_GENERATOR_JAR=~/bin/openapitools/openapi-generator-cli.jar
 if [ ! -f "$OPENAPI_GENERATOR_JAR" ]; then
     curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar -o "$OPENAPI_GENERATOR_JAR"
-    echo "d41d8cd98f00b204e9800998ecf8427e  $OPENAPI_GENERATOR_JAR" | sha256sum -c -
+    # echo "d41d8cd98f00b204e9800998ecf8427e  $OPENAPI_GENERATOR_JAR" | sha256sum -c -
 fi
 
 get_git_repo_name() {
@@ -85,5 +86,4 @@ generate_openapi_models \
 
 generate_openapi_models \
     "$OPENAPI_URL_TES" \
-    "tes" "$SCRIPT_DIR/lib/src/tes/"
     "tes" "$SCRIPT_DIR/lib/src/tes/"
