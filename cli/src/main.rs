@@ -1,9 +1,10 @@
 use clap::{arg, Command};
 use ga4gh_sdk::configuration::Configuration;
-use core::task;
+// use core::task;
 use std::error::Error;
 use ga4gh_sdk::tes::TES;
 use ga4gh_sdk::tes::models::TesTask;
+use ga4gh_sdk::test_utils::ensure_funnel_running;
 // use std::fs::File;
 // use std::io::Write;
 // use tempfile::tempdir;
@@ -61,7 +62,9 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
                 // let url = sub.value_of("url").unwrap();
                 let task_json = task_file.to_string();
                 let testask: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
-                let config = Configuration::default();
+                let mut config = Configuration::default();
+                let funnel_url = ensure_funnel_running().await;
+                config.set_base_path(&funnel_url);
                 match TES::new(&config).await {
                         Ok(tes) => {
                             let task = tes.create(testask).await;
