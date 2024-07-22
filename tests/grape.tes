@@ -1,0 +1,85 @@
+{
+    "name": "GRAPE",
+    "resources": {
+        "disk_gb": 200
+    },
+    "volumes": [
+        "/vol/a/"
+    ],
+    "executors": [
+        {
+            "image": "amazon/aws-cli",
+            "command": [
+                "aws",
+                "s3",
+                "cp",
+                "${INPUT}",
+                "/vol/a/input.vcf.gz"
+            ],
+            "env": {
+                "AWS_ACCESS_KEY_ID": "${AWS_ACCESS_KEY_ID}",
+                "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_ACCESS_KEY}",
+                "AWS_REGION": "${AWS_REGION}"
+            }
+        },
+        {
+            "image": "genxnetwork/grape",
+            "command": [
+                "python",
+                "launcher.py",
+                "reference",
+                "--use-bundle",
+                "--ref-directory",
+                "/vol/a/media/ref",
+                "--real-run"
+            ]
+        },
+        {
+            "image": "genxnetwork/grape",
+            "command": [
+                "python",
+                "launcher.py",
+                "preprocess",
+                "--ref-directory",
+                "/vol/a/media/ref",
+                "--vcf-file",
+                "/vol/a/input.vcf.gz",
+                "--directory",
+                "/vol/a/media/data",
+                "--assembly",
+                "hg37",
+                "--real-run"
+            ]
+        },
+        {
+            "image": "genxnetwork/grape",
+            "command": [
+                "python",
+                "launcher.py",
+                "find",
+                "--flow",
+                "ibis",
+                "--ref-directory",
+                "/vol/a/media/ref",
+                "--directory",
+                "/vol/a/media/data",
+                "--real-run"
+            ]
+        },
+        {
+            "image": "amazon/aws-cli",
+            "command": [
+                "aws",
+                "s3",
+                "cp",
+                "/vol/a/media/data/results/relatives.tsv",
+                "${OUTPUT}"
+            ],
+            "env": {
+                "AWS_ACCESS_KEY_ID": "${AWS_ACCESS_KEY_ID}",
+                "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_ACCESS_KEY}",
+                "AWS_REGION": "${AWS_REGION}"
+            }
+        }
+    ]
+}

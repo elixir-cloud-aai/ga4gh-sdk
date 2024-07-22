@@ -1,0 +1,4 @@
+ignore = [
+    "lib/serviceinfo/models",
+    "lib/tes/models",
+]
