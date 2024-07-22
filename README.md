@@ -1,4 +1,12 @@
-# A Generic SDK and CLI for GA4GH API services
+# GA4GH SDK
+
+## Synopsis
+
+A Generic SDK and CLI for GA4GH API services
+
+## Basic usage
+
+## Installation
 
 ## Building
 
@@ -36,3 +44,20 @@ act -j build --container-architecture linux/amd64 -P ubuntu-latest=ubuntu:24.04 
 # Note: The specified Ubuntu version (24.04) may change in the future. 
 # Please check for the latest version when running this command.
 ```
+
+## Versioning
+
+## Contributing
+
+This project is a community effort and lives off your contributions, be it in
+the form of bug reports, feature requests, discussions, ideas, fixes, or other
+code changes. Please read [these guidelines][docs-contributing] if you want to
+contribute. And please mind the [code of conduct][docs-coc] for all
+interactions with the community.
+
+## License
+
+This project is covered by the [Apache License 2.0][badge-url-license] also
+[shipped with this repository][docs-license].
+
+## Contact
