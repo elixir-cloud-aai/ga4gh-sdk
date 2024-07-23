@@ -9,6 +9,9 @@ use ga4gh_sdk::test_utils::ensure_funnel_running;
 use std::fs::File;
 use serde_json::Value;
 use std::io::Read;
+use std::fs;
+use std::path::Path;
+
 // use std::io::Write;
 // use tempfile::tempdir;
 
@@ -30,6 +33,12 @@ use std::io::Read;
 //         "stdout": "/outputs/stdout"
 //     }]
 // }' 
+
+// OR 
+// cargo run -- tes create '../tests/sample.tes' 
+
+
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     run_cli(Command::new("cli")).await
@@ -62,7 +71,17 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
             if let Some(("create", sub)) = sub.subcommand() {
                 let task_file = sub.value_of("TASK_FILE").unwrap();
                 // let url = sub.value_of("url").unwrap();
-                let task_json = task_file.to_string();
+                let path = Path::new(task_file);
+                if !path.exists() {
+                    eprintln!("File does not exist: {:?}", path);
+                }
+                let task_json = match fs::read_to_string(path) {
+                    Ok(contents) => contents,
+                    Err(e) => {
+                        eprintln!("Failed to read file: {}", e);
+                        task_file.to_string()
+                    },
+                };
                 let testask: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
                 // let mut config = Configuration::default();
                 let mut config = load_configuration();
@@ -85,9 +104,9 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dyn Error>> {
-    let mut file = File::open(file_path).expect("File not found");
+    let mut file = File::open(file_path)?;
     let mut contents = String::new();
-    file.read_to_string(&mut contents).expect("Something went wrong reading the file");
+    file.read_to_string(&mut contents)?;
     
     let json_value: Value = serde_json::from_str(&contents)?;
 
