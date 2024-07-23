@@ -4,8 +4,11 @@ use ga4gh_sdk::configuration::Configuration;
 use std::error::Error;
 use ga4gh_sdk::tes::TES;
 use ga4gh_sdk::tes::models::TesTask;
+use ga4gh_sdk::configuration::BasicAuth;
 use ga4gh_sdk::test_utils::ensure_funnel_running;
-// use std::fs::File;
+use std::fs::File;
+use serde_json::Value;
+use std::io::Read;
 // use std::io::Write;
 // use tempfile::tempdir;
 
@@ -27,7 +30,6 @@ use ga4gh_sdk::test_utils::ensure_funnel_running;
 //         "stdout": "/outputs/stdout"
 //     }]
 // }' 
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     run_cli(Command::new("cli")).await
@@ -62,7 +64,8 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
                 // let url = sub.value_of("url").unwrap();
                 let task_json = task_file.to_string();
                 let testask: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
-                let mut config = Configuration::default();
+                // let mut config = Configuration::default();
+                let mut config = load_configuration();
                 let funnel_url = ensure_funnel_running().await;
                 config.set_base_path(&funnel_url);
                 match TES::new(&config).await {
@@ -81,8 +84,45 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
+fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dyn Error>> {
+    let mut file = File::open(file_path).expect("File not found");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).expect("Something went wrong reading the file");
+    
+    let json_value: Value = serde_json::from_str(&contents)?;
 
+    let base_path = json_value["base_path"].as_str().unwrap_or_default().to_string();
+    let user_agent = json_value["user_agent"].as_str().map(|s| s.to_string());
+    let basic_auth = json_value["basic_auth"].as_object().map(|auth| BasicAuth {
+            username: auth["username"].as_str().unwrap_or_default().to_string(),
+            password: Some(auth["password"].as_str().unwrap_or_default().to_string()),
+        });
+    let oauth_access_token = json_value["oauth_access_token"].as_str().map(|s| s.to_string());
 
+    let config = Configuration::new(base_path, user_agent, basic_auth, oauth_access_token);
+    Ok(config)
+}
+
+fn load_configuration() -> Configuration {
+    let config_file_path = dirs::home_dir().map(|path| path.join(".config"));
+    if let Some(path) = config_file_path {
+        if path.exists() {
+            if let Some(path_str) = path.to_str() {
+                match read_configuration_from_file(path_str) {
+                    Ok(config) => {config},
+                    Err(_) => {Configuration::default()},
+                }
+            } else {
+                Configuration::default()
+            }
+            
+        } else {
+            Configuration::default()
+        }
+    } else {
+        Configuration::default()
+    }
+}
 
 // #[cfg(test)]
 // mod tests {
