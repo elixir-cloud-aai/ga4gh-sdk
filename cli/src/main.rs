@@ -62,6 +62,13 @@ use std::io::Read;
 /// ```sh
 /// cargo run -- tes status cqgk5lj93m0311u6p530      
 /// ```
+/// 
+/// 
+/// To run the `cancel` command:
+///
+/// ```sh
+/// cargo run -- tes cancel cqgk5lj93m0311u6p530      
+/// ```
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
