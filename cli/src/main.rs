@@ -108,6 +108,12 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                         .about("get status of the task")
                         .arg(arg!(<id> "The id of the task which should be returned"))
                         .arg_required_else_help(true),
+                )
+                .subcommand(
+                    Command::new("cancel")
+                        .about("cancel the task")
+                        .arg(arg!(<id> "The id of the task which should be cancel"))
+                        .arg_required_else_help(true),
                 ),
         );
 
@@ -214,6 +220,25 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                 match task.status().await {
                     Ok(status) => {
                         println!("The status is: {:?}",status);
+                    },
+                    Err(e) => {
+                        println!("Error creating Task instance: {:?}", e);
+                        return Err(e);
+                    }
+                };
+            }
+            if let Some(("cancel", sub)) = sub.subcommand() {               
+                let mut config = Configuration::default();
+                let id = sub.value_of("id").unwrap().to_string();
+                
+                // let mut config = load_configuration();
+                let funnel_url = ensure_funnel_running().await;
+                config.set_base_path(&funnel_url);
+                let transport = Transport::new(&config);
+                let task = Task::new(id, transport);
+                match task.cancel().await {
+                    Ok(output) => {
+                        println!("The new value is: {:?}",output);
                     },
                     Err(e) => {
                         println!("Error creating Task instance: {:?}", e);
