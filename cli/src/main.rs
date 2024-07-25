@@ -62,7 +62,7 @@ use std::path::Path;
 async fn main() -> Result<(), Box<dyn Error>> {
     run_cli(Command::new("cli")).await
 }
-async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
+async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
     let cmd = cmd
         .bin_name("cli")
         .version("1.0")
