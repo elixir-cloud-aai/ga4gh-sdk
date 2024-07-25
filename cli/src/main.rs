@@ -65,6 +65,13 @@ use std::path::Path;
 /// ```sh
 /// cargo run -- tes status cqgk5lj93m0311u6p530      
 /// ```
+/// 
+/// 
+/// To run the `cancel` command:
+///
+/// ```sh
+/// cargo run -- tes cancel cqgk5lj93m0311u6p530      
+/// ```
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -252,42 +259,3 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-// fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dyn Error>> {
-//     let mut file = File::open(file_path)?;
-//     let mut contents = String::new();
-//     file.read_to_string(&mut contents)?;
-    
-//     let json_value: Value = serde_json::from_str(&contents)?;
-
-//     let base_path = json_value["base_path"].as_str().unwrap_or_default().to_string();
-//     let user_agent = json_value["user_agent"].as_str().map(|s| s.to_string());
-//     let basic_auth = json_value["basic_auth"].as_object().map(|auth| BasicAuth {
-//             username: auth["username"].as_str().unwrap_or_default().to_string(),
-//             password: Some(auth["password"].as_str().unwrap_or_default().to_string()),
-//         });
-//     let oauth_access_token = json_value["oauth_access_token"].as_str().map(|s| s.to_string());
-
-//     let config = Configuration::new(base_path, user_agent, basic_auth, oauth_access_token);
-//     Ok(config)
-// }
-
-// fn load_configuration() -> Configuration {
-//     let config_file_path = dirs::home_dir().map(|path| path.join(".config"));
-//     if let Some(path) = config_file_path {
-//         if path.exists() {
-//             if let Some(path_str) = path.to_str() {
-//                 match read_configuration_from_file(path_str) {
-//                     Ok(config) => {config},
-//                     Err(_) => {Configuration::default()},
-//                 }
-//             } else {
-//                 Configuration::default()
-//             }
-            
-//         } else {
-//             Configuration::default()
-//         }
-//     } else {
-//         Configuration::default()
-//     }
-// }
