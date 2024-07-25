@@ -50,7 +50,13 @@ use std::path::Path;
 /// ```sh
 /// cargo run -- tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
 /// ```
-
+/// 
+/// 
+/// To run the `get` command:
+///
+/// ```sh
+/// cargo run -- tes get cqgk5lj93m0311u6p530 BASIC
+/// ```
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -80,6 +86,13 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
                     Command::new("list")
                         .about("list all tasks")
                         .arg(arg!(<params> "The parameters to get back"))
+                        .arg_required_else_help(true),
+                )
+                .subcommand(
+                    Command::new("get")
+                        .about("list all tasks")
+                        .arg(arg!(<id> "The id of the task which should be returned"))
+                        .arg(arg!(<view> "The view in which the task should be returned"))
                         .arg_required_else_help(true),
                 ),
         );
@@ -130,6 +143,7 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
                     })
                     .collect();
                 println!("parameters are: {:?}",params_map);
+
                 // Now, construct ListTasksParams from the parsed values
                 let parameters = ListTasksParams {
                     name_prefix: params_map.get("name_prefix").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
@@ -145,17 +159,37 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
                 let funnel_url = ensure_funnel_running().await;
                 config.set_base_path(&funnel_url);
                 match TES::new(&config).await {
-                        Ok(tes) => {
-                            let task = tes.list_tasks(Some(parameters)).await;
-                            println!("{:?}",task);
-                        },
-                        Err(e) => {
-                            println!("Error creating TES instance: {:?}", e);
-                            return Err(e);
-                        }
-                    };
-                }
+                    Ok(tes) => {
+                        let task = tes.list_tasks(Some(parameters)).await;
+                        println!("{:?}",task);
+                    },
+                    Err(e) => {
+                        println!("Error creating TES instance: {:?}", e);
+                        return Err(e);
+                    }
+                };
+            }
+            if let Some(("get", sub)) = sub.subcommand() {               
+                let mut config = Configuration::default();
+                let id = sub.value_of("id").unwrap();
+                let view = sub.value_of("view").unwrap();
+                
+                // let mut config = load_configuration();
+                let funnel_url = ensure_funnel_running().await;
+                config.set_base_path(&funnel_url);
+                match TES::new(&config).await {
+                    Ok(tes) => {
+                        let task = tes.get(view, id).await;
+                        println!("{:?}",task);
+                    },
+                    Err(e) => {
+                        println!("Error creating TES instance: {:?}", e);
+                        return Err(e);
+                    }
+                };
+            }
         }
+        
         _ => {println!("TODO");}
     }
     Ok(())
