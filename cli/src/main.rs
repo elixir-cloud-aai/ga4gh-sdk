@@ -9,13 +9,6 @@ use ga4gh_sdk::tes::models::TesTask;
 use ga4gh_sdk::test_utils::ensure_funnel_running;
 use std::fs;
 use std::path::Path;
-// use std::os::linux::raw::stat;
-// use ga4gh_sdk::configuration::BasicAuth;
-// use std::fs::File;
-// use serde_json::Value;
-// use std::io::Read;
-// use std::io::Write;
-// use tempfile::tempdir;
 
 
 /// # Examples
