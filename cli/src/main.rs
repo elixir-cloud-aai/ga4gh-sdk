@@ -5,40 +5,51 @@ use std::collections::HashMap;
 use std::error::Error;
 use ga4gh_sdk::tes::TES;
 use ga4gh_sdk::tes::models::TesTask;
-// use ga4gh_sdk::configuration::BasicAuth;
 use ga4gh_sdk::test_utils::ensure_funnel_running;
+use std::fs;
+use std::path::Path;
+// use ga4gh_sdk::configuration::BasicAuth;
 // use std::fs::File;
 // use serde_json::Value;
 // use std::io::Read;
-use std::fs;
-use std::path::Path;
-
 // use std::io::Write;
 // use tempfile::tempdir;
 
 
-// TO RUN:
-// cargo run -- tes create '{
-//     "name": "Hello world",
-//     "inputs": [{
-//         "url": "s3://funnel-bucket/hello.txt",
-//         "path": "/inputs/hello.txt"
-//     }],
-//     "outputs": [{
-//         "url": "s3://funnel-bucket/output.txt",
-//         "path": "/outputs/stdout"
-//     }],
-//     "executors": [{
-//         "image": "alpine",
-//         "command": ["cat", "/inputs/hello.txt"],
-//         "stdout": "/outputs/stdout"
-//     }]
-// }' 
-
-// OR 
-// cargo run -- tes create '../tests/sample.tes' 
-
-// LIST command
+/// # Examples
+///
+/// To run the `create` command:
+///
+/// ```sh
+/// cargo run -- tes create '{
+///     "name": "Hello world",
+///     "inputs": [{
+///         "url": "s3://funnel-bucket/hello.txt",
+///         "path": "/inputs/hello.txt"
+///     }],
+///     "outputs": [{
+///         "url": "s3://funnel-bucket/output.txt",
+///         "path": "/outputs/stdout"
+///     }],
+///     "executors": [{
+///         "image": "alpine",
+///         "command": ["cat", "/inputs/hello.txt"],
+///         "stdout": "/outputs/stdout"
+///     }]
+/// }'
+/// ```
+///
+/// Or:
+///
+/// ```sh
+/// cargo run -- tes create '../tests/sample.tes'
+/// ```
+///
+/// To run the `list` command:
+///
+/// ```sh
+/// cargo run -- tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
+/// ```
 
 
 #[tokio::main]
@@ -112,7 +123,7 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
                 let params = sub.value_of("params").unwrap().to_string();
                                 
                 // Split the params string into key-value pairs and collect into a HashMap for easier access
-                let params_map: HashMap<&str, &str> = params.split(';')
+                let params_map: HashMap<&str, &str> = params.split(',')
                     .filter_map(|s| {
                         let mut parts = s.trim().splitn(2, ':');
                         parts.next().and_then(|key| parts.next().map(|value| (key.trim(), value.trim())))
@@ -121,25 +132,15 @@ async fn run_cli<'a>(cmd: Command<'a>) -> Result<(), Box<dyn Error>> {
                 println!("parameters are: {:?}",params_map);
                 // Now, construct ListTasksParams from the parsed values
                 let parameters = ListTasksParams {
-                    name_prefix: params_map.get("name_prefix").map(|&s| s.to_string()),
-                    state: params_map.get("state").map(|&s| serde_json::from_str(s).expect("Invalid state")),
+                    name_prefix: params_map.get("name_prefix").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
+                    state: params_map.get("state").and_then(|&s| if s == "None" { None } else { Some(serde_json::from_str(s).expect("Invalid state")) }),
                     tag_key: None, // Example does not cover parsing Vec<String>
                     tag_value: None, // Example does not cover parsing Vec<String>
-                    page_size: params_map.get("page_size").map(|&s| s.parse().expect("Invalid page_size")),
-                    page_token: params_map.get("page_token").map(|&s| s.to_string()),
-                    view: params_map.get("view").map(|&s| s.to_string()),
+                    page_size: params_map.get("page_size").and_then(|&s| if s == "None" { None } else { Some(s.parse().expect("Invalid page_size")) }),
+                    page_token: params_map.get("page_token").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
+                    view: params_map.get("view").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
                 };
                 println!("parameters are: {:?}",parameters);
-                // let params: ListTasksParams = ListTasksParams {
-                //     name_prefix: None,
-                //     state: None,
-                //     tag_key: None,
-                //     tag_value: None,
-                //     page_size: None,
-                //     page_token: None,
-                //     view: Some("BASIC".to_string()),
-                // };
-                
                 // let mut config = load_configuration();
                 let funnel_url = ensure_funnel_running().await;
                 config.set_base_path(&funnel_url);
