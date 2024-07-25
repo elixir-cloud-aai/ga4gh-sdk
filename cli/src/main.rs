@@ -1,13 +1,15 @@
 use clap::{arg, Command};
 use ga4gh_sdk::configuration::Configuration;
 use ga4gh_sdk::tes::model::ListTasksParams;
+use ga4gh_sdk::transport::Transport;
 use std::collections::HashMap;
 use std::error::Error;
-use ga4gh_sdk::tes::TES;
+use ga4gh_sdk::tes::{Task, TES};
 use ga4gh_sdk::tes::models::TesTask;
 use ga4gh_sdk::test_utils::ensure_funnel_running;
 use std::fs;
 use std::path::Path;
+// use std::os::linux::raw::stat;
 // use ga4gh_sdk::configuration::BasicAuth;
 // use std::fs::File;
 // use serde_json::Value;
@@ -42,7 +44,7 @@ use std::path::Path;
 /// Or:
 ///
 /// ```sh
-/// cargo run -- tes create '../tests/sample.tes'
+/// cargo run -- tes create './tests/sample.tes'
 /// ```
 ///
 /// To run the `list` command:
@@ -51,11 +53,17 @@ use std::path::Path;
 /// cargo run -- tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
 /// ```
 /// 
-/// 
+/// ASSUME, cqgk5lj93m0311u6p530 is the id of a task created before
 /// To run the `get` command:
 ///
 /// ```sh
 /// cargo run -- tes get cqgk5lj93m0311u6p530 BASIC
+/// ```
+/// 
+/// To run the `status` command:
+///
+/// ```sh
+/// cargo run -- tes status cqgk5lj93m0311u6p530      
 /// ```
 
 #[tokio::main]
@@ -90,9 +98,15 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                 )
                 .subcommand(
                     Command::new("get")
-                        .about("list all tasks")
+                        .about("get task data")
                         .arg(arg!(<id> "The id of the task which should be returned"))
                         .arg(arg!(<view> "The view in which the task should be returned"))
+                        .arg_required_else_help(true),
+                )
+                .subcommand(
+                    Command::new("status")
+                        .about("get status of the task")
+                        .arg(arg!(<id> "The id of the task which should be returned"))
                         .arg_required_else_help(true),
                 ),
         );
@@ -184,6 +198,25 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                     },
                     Err(e) => {
                         println!("Error creating TES instance: {:?}", e);
+                        return Err(e);
+                    }
+                };
+            }
+            if let Some(("status", sub)) = sub.subcommand() {               
+                let mut config = Configuration::default();
+                let id = sub.value_of("id").unwrap().to_string();
+                
+                // let mut config = load_configuration();
+                let funnel_url = ensure_funnel_running().await;
+                config.set_base_path(&funnel_url);
+                let transport = Transport::new(&config);
+                let task = Task::new(id, transport);
+                match task.status().await {
+                    Ok(status) => {
+                        println!("The status is: {:?}",status);
+                    },
+                    Err(e) => {
+                        println!("Error creating Task instance: {:?}", e);
                         return Err(e);
                     }
                 };
