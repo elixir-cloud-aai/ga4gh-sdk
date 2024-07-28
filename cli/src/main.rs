@@ -14,7 +14,6 @@ use std::fs::File;
 use serde_json::Value;
 use std::io::Read;
 
-
 /// # Examples
 ///
 /// To run the `create` command:
@@ -55,19 +54,6 @@ use std::io::Read;
 ///
 /// ```sh
 /// cargo run -- tes get cqgk5lj93m0311u6p530 BASIC
-/// ```
-/// 
-/// To run the `status` command:
-///
-/// ```sh
-/// cargo run -- tes status cqgk5lj93m0311u6p530      
-/// ```
-/// 
-/// 
-/// To run the `cancel` command:
-///
-/// ```sh
-/// cargo run -- tes cancel cqgk5lj93m0311u6p530      
 /// ```
 
 #[tokio::main]
@@ -140,10 +126,11 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                     },
                 };
                 let testask: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
-                let mut config = Configuration::default();
-                // let mut config = load_configuration();
-                let funnel_url = ensure_funnel_running().await;
-                config.set_base_path(&funnel_url);
+                let mut config = load_configuration();
+                if config.base_path == "localhost" {
+                    let funnel_url = ensure_funnel_running().await;
+                    config.set_base_path(&funnel_url);
+                }
                 match TES::new(&config).await {
                         Ok(tes) => {
                             let task = tes.create(testask).await;
@@ -155,8 +142,7 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                         }
                     };
                 }
-            if let Some(("list", sub)) = sub.subcommand() {               
-                let mut config = Configuration::default();
+            if let Some(("list", sub)) = sub.subcommand() {          
                 let params = sub.value_of("params").unwrap().to_string();
                                 
                 // Split the params string into key-value pairs and collect into a HashMap for easier access
@@ -179,9 +165,11 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                     view: params_map.get("view").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
                 };
                 println!("parameters are: {:?}",parameters);
-                // let mut config = load_configuration();
-                let funnel_url = ensure_funnel_running().await;
-                config.set_base_path(&funnel_url);
+                let mut config = load_configuration();
+                if config.base_path == "localhost" {
+                    let funnel_url = ensure_funnel_running().await;
+                    config.set_base_path(&funnel_url);
+                }
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.list_tasks(Some(parameters)).await;
@@ -193,14 +181,16 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                     }
                 };
             }
-            if let Some(("get", sub)) = sub.subcommand() {               
-                let mut config = Configuration::default();
+            if let Some(("get", sub)) = sub.subcommand() {    
                 let id = sub.value_of("id").unwrap();
                 let view = sub.value_of("view").unwrap();
                 
-                // let mut config = load_configuration();
-                let funnel_url = ensure_funnel_running().await;
-                config.set_base_path(&funnel_url);
+                let mut config = load_configuration();
+                if config.base_path == "localhost" {
+                    let funnel_url = ensure_funnel_running().await;
+                    config.set_base_path(&funnel_url);
+                }
+
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.get(view, id).await;
@@ -212,13 +202,14 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                     }
                 };
             }
-            if let Some(("status", sub)) = sub.subcommand() {               
-                let mut config = Configuration::default();
+            if let Some(("status", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
                 
-                // let mut config = load_configuration();
-                let funnel_url = ensure_funnel_running().await;
-                config.set_base_path(&funnel_url);
+                let mut config = load_configuration();   
+                if config.base_path == "localhost" {
+                    let funnel_url = ensure_funnel_running().await;
+                    config.set_base_path(&funnel_url);
+                }
                 let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
                 match task.status().await {
@@ -231,13 +222,14 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                     }
                 };
             }
-            if let Some(("cancel", sub)) = sub.subcommand() {               
-                // let mut config = Configuration::default();
+            if let Some(("cancel", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
                 
                 let mut config = load_configuration();
-                let funnel_url = ensure_funnel_running().await;
-                config.set_base_path(&funnel_url);
+                if config.base_path == "localhost" {
+                    let funnel_url = ensure_funnel_running().await;
+                    config.set_base_path(&funnel_url);
+                }
                 let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
                 match task.cancel().await {
@@ -256,6 +248,16 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
+
+/// Example `config.json` file:
+///
+/// ```json
+/// {
+///   "base_path": "http://localhost:8000",
+///   "user_agent": "username"
+/// }
+/// ```
+
 fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dyn Error>> {
     let mut file = File::open(file_path)?;
     let mut contents = String::new();
@@ -276,13 +278,15 @@ fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dy
 }
 
 fn load_configuration() -> Configuration {
-    let config_file_path = dirs::home_dir().map(|path| path.join(".config"));
+    let config_file_path = dirs::home_dir().map(|path| path.join(".config/config.json"));
     if let Some(path) = config_file_path {
         if path.exists() {
             if let Some(path_str) = path.to_str() {
                 match read_configuration_from_file(path_str) {
                     Ok(config) => {config},
-                    Err(_) => {Configuration::default()},
+                    Err(_) => {
+                        Configuration::default()
+                    },
                 }
             } else {
                 Configuration::default()
