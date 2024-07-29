@@ -92,6 +92,6 @@ To get in touch with us, please use one of the following routes:
 [email]: mailto:cloud-service@elixir-europe.org
 [ga4gh]: https://ga4gh.org/
 [license]: LICENSE
-[logo-elixir]: https://github.com/elixir-cloud-aai/cookiecutter-python/blob/ea72128ea94f0693d2a940f3f1657554178b6b66/images/logo-elixir.svg
-[logo-elixir-cloud-aai]: https://github.com/elixir-cloud-aai/cookiecutter-python/blob/ea72128ea94f0693d2a940f3f1657554178b6b66/images/logo-elixir-cloud-aai.svg
+[logo-elixir]: ./images/logo-elixir.svg
+[logo-elixir-cloud-aai]: ./images/logo-elixir-cloud-aai.svg
 [semver]: https://semver.org/
