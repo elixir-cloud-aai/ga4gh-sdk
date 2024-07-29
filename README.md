@@ -1,4 +1,5 @@
 # GA4GH SDK
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
 ## Synopsis
 
@@ -48,6 +49,9 @@ act -j build --container-architecture linux/amd64 -P ubuntu-latest=ubuntu:24.04 
 ```
 
 ## Versioning
+The project adopts the [semver] scheme for versioning.
+Currently the software is in a pre-release stage, so changes to the API,
+including breaking changes, may occur at any time without further notice.
 
 ## Contributing
 
@@ -59,8 +63,8 @@ interactions with the community.
 
 ## License
 
-This project is covered by the [Apache License 2.0][badge-url-license] also
-[shipped with this repository][docs-license].
+This project is covered by the [Apache License 2.0](badge-url-license) also
+[shipped with this repository][license].
 
 ## Contact
 The project is maintained by [ELIXIR Cloud & AAI][elixir-cloud-aai], a Driver
@@ -75,6 +79,7 @@ To get in touch with us, please use one of the following routes:
   to join our team as a regular contributor, you can either join our
   [chat board][badge-chat-url] or [email] the community leaders.
 
+
 [![logo-elixir]][elixir] [![logo-elixir-cloud-aai]][elixir-cloud-aai]
 
 [badge-chat-url]: https://join.slack.com/t/elixir-cloud/shared_invite/enQtNzA3NTQ5Mzg2NjQ3LTZjZGI1OGQ5ZTRiOTRkY2ExMGUxNmQyODAxMDdjM2EyZDQ1YWM0ZGFjOTJhNzg5NjE0YmJiZTZhZDVhOWE4MWM
@@ -87,6 +92,6 @@ To get in touch with us, please use one of the following routes:
 [email]: mailto:cloud-service@elixir-europe.org
 [ga4gh]: https://ga4gh.org/
 [license]: LICENSE
-[logo-elixir]: images/logo-elixir.svg
-[logo-elixir-cloud-aai]: images/logo-elixir-cloud-aai.svg
+[logo-elixir]: https://github.com/elixir-cloud-aai/cookiecutter-python/blob/ea72128ea94f0693d2a940f3f1657554178b6b66/images/logo-elixir.svg
+[logo-elixir-cloud-aai]: https://github.com/elixir-cloud-aai/cookiecutter-python/blob/ea72128ea94f0693d2a940f3f1657554178b6b66/images/logo-elixir-cloud-aai.svg
 [semver]: https://semver.org/
