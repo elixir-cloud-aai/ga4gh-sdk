@@ -2,11 +2,13 @@
 
 ## Synopsis
 
-A Generic SDK and CLI for GA4GH API services
+A Generic SDK and CLI for GA4GH API services.
 
 ## Basic usage
+TBA
 
 ## Installation
+TBA
 
 ## Building
 
@@ -20,7 +22,7 @@ To build the project:
 cargo build
 ```
 
-## Running the tests
+## Testing
 
 Before running the tests, you need to install Funnel, a task execution system that is compatible with the GA4GH TES API. Follow the instructions in the Funnel Developer's Guide to install Funnel: https://ohsu-comp-bio.github.io/funnel/docs/development/developers/. Note that the link may change over time, so refer to the official Funnel repository or website for the most up-to-date information.
 
@@ -61,3 +63,30 @@ This project is covered by the [Apache License 2.0][badge-url-license] also
 [shipped with this repository][docs-license].
 
 ## Contact
+The project is maintained by [ELIXIR Cloud & AAI][elixir-cloud-aai], a Driver
+Project of the [Global Alliance for Genomics and Health (GA4GH)][ga4gh], under
+the umbrella of the [ELIXIR] [Compute Platform][elixir-compute].
+
+To get in touch with us, please use one of the following routes:
+
+- For filing bug reports, feature requests or other code-related issues, please
+  make use of the project's [issue tracker][issue-tracker].
+- For private/personal issues, more involved communication, or if you would like
+  to join our team as a regular contributor, you can either join our
+  [chat board][badge-chat-url] or [email] the community leaders.
+
+[![logo-elixir]][elixir] [![logo-elixir-cloud-aai]][elixir-cloud-aai]
+
+[badge-chat-url]: https://join.slack.com/t/elixir-cloud/shared_invite/enQtNzA3NTQ5Mzg2NjQ3LTZjZGI1OGQ5ZTRiOTRkY2ExMGUxNmQyODAxMDdjM2EyZDQ1YWM0ZGFjOTJhNzg5NjE0YmJiZTZhZDVhOWE4MWM
+[badge-license-url]: http://www.apache.org/licenses/LICENSE-2.0
+[code-of-conduct]: https://elixir-cloud-aai.github.io/about/code-of-conduct/
+[contributing]: https://elixir-cloud-aai.github.io/guides/guide-contributor/
+[elixir]: https://elixir-europe.org/
+[elixir-cloud-aai]: https://elixir-cloud.dcc.sib.swiss/
+[elixir-compute]: https://elixir-europe.org/platforms/compute
+[email]: mailto:cloud-service@elixir-europe.org
+[ga4gh]: https://ga4gh.org/
+[license]: LICENSE
+[logo-elixir]: images/logo-elixir.svg
+[logo-elixir-cloud-aai]: images/logo-elixir-cloud-aai.svg
+[semver]: https://semver.org/
