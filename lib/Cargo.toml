@@ -9,7 +9,6 @@ authors.workspace = true
 edition.workspace = true
 readme.workspace = true
 license-file.workspace = true
-# rust-version = "1.74"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
