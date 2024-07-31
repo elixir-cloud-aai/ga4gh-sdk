@@ -1,27 +1,28 @@
 #!/bin/bash
+OPENAPI_GENERATOR_JAR=~/bin/openapitools/openapi-generator-cli.jar
+OPENAPI_URL_SERVICEINFO="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml"
+OPENAPI_URL_TES="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml"
+OPENAPI_GENERATOR_URL= "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar "
+SCRIPT_DIR="$(pwd)"
+SED_RULE="s/^use\s\+crate::models\s*;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::$API_NAME::models;/"
+# Define the temporary output directory for the OpenAPI generator
+TEMP_OUTPUT_DIR=$(mktemp -d)
+
 
 # Exit immediately if a command exits with a non-zero status.
-set -e
+set -euo pipefail
 
-# Ensure the OpenAPI Generator JAR file is set up
-mkdir -p ~/bin/openapitools
-OPENAPI_GENERATOR_JAR=~/bin/openapitools/openapi-generator-cli.jar
-if [ ! -f "$OPENAPI_GENERATOR_JAR" ]; then
-    curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar -o "$OPENAPI_GENERATOR_JAR"
-    # echo "d41d8cd98f00b204e9800998ecf8427e  $OPENAPI_GENERATOR_JAR" | sha256sum -c -
-fi
-
-get_git_repo_name() {
-    # Extract the URL of the remote "origin"
-    url=$(git config --get remote.origin.url)
-
-    # Extract the repository name from the URL
-    repo_name=$(basename -s .git "$url")
-
-    echo "$repo_name"
+# Function to ensure the OpenAPI Generator JAR file is set up
+ensure_openapi_generator() {
+    mkdir -p ~/bin/openapitools
+    if [ ! -f "$OPENAPI_GENERATOR_JAR" ]; then
+        curl -L "$OPENAPI_GENERATOR_URL" -o "$OPENAPI_GENERATOR_JAR"
+        echo "d41d8cd98f00b204e9800998ecf8427e  $OPENAPI_GENERATOR_JAR" | sha256sum -c -
+    fi
 }
 
-SCRIPT_DIR="$(pwd)"
+# Call the function to ensure the OpenAPI Generator JAR file is set up
+ensure_openapi_generator
 
 generate_openapi_models() {
     # Parameters
@@ -29,8 +30,6 @@ generate_openapi_models() {
     API_NAME="$2"
     DESTINATION_DIR="$3"
 
-    # Define the temporary output directory for the OpenAPI generator
-    TEMP_OUTPUT_DIR=$(mktemp -d)
 
     # Remove the temporary directory at the end of the script
     trap 'rm -rf "$TEMP_OUTPUT_DIR"' EXIT
@@ -53,7 +52,6 @@ generate_openapi_models() {
     echo "TEMP_OUTPUT_DIR is $TEMP_OUTPUT_DIR"
 
     # Modify the import statements in each generated file
-SED_RULE="s/^use\s\+crate::models\s*;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::$API_NAME::models;/"
     find "$TEMP_OUTPUT_DIR" -name '*.rs' > /dev/null
     if [ $? -ne 0 ]; then
         echo "Error: 'find' command failed."
@@ -76,9 +74,6 @@ SED_RULE="s/^use\s\+crate::models\s*;/#![allow(unused_imports)]\n#![allow(clippy
 
     echo "OpenAPI generation complete. Models copied to $DESTINATION_DIR"
 }
-
-OPENAPI_URL_SERVICEINFO="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml"
-OPENAPI_URL_TES="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml"
 
 generate_openapi_models \
     "$OPENAPI_URL_SERVICEINFO" \
