@@ -1,0 +1,74 @@
+---
+default: true
+
+# Headings
+MD001: 
+  level: 1  # Require headings to increment by one level at a time
+MD002: 
+  level: 2  # Require that the first heading in a document is a level 2 heading
+MD003: 
+  style: atx  # Enforce a consistent style for headings (e.g., atx style using #)
+
+# Unordered Lists
+MD004: 
+  style: dash  # Enforce consistent marker style (e.g., - for list items)
+MD005: true  # Ensure list indentation is consistent
+MD006: true  # Require proper indentation for list items
+MD007: 
+  indent: 2  # Enforce a consistent indentation level for nested list items
+
+# Line Length
+MD013: 
+  line_length: 80  # Limit line length to 80 characters
+  code_blocks: false  # Exclude code blocks from line length rule
+  tables: false  # Exclude tables from line length rule
+
+# Trailing Spaces
+MD009: 
+  strict: true  # Ensure no trailing spaces at the end of lines
+
+# Punctuation
+MD026: 
+  punctuation: ".,;:!"  # Ensure proper punctuation in headings
+
+# Horizontal Rules
+MD035: 
+  style: "***"  # Enforce a consistent style for horizontal rules
+
+# Links and Images
+MD042: true  # Require proper use of URLs in links
+MD045: true  # Ensure alt text is provided for images
+
+# General Formatting
+MD010: true  # No hard tabs
+MD012: 
+  maximum: 1  # No multiple consecutive blank lines
+MD014: true  # Dollar signs used before commands without showing output
+MD018: true  # No space after hash on atx style heading
+MD019: true  # Multiple spaces after hash on atx style heading
+MD020: true  # No space inside hashes on closed atx style heading
+MD021: true  # No multiple spaces inside hashes on closed atx style heading
+MD022: true  # Headings should be surrounded by blank lines
+MD023: true  # Headings must start at the beginning of the line
+MD024: true  # Multiple headings with the same content
+MD025: true  # Multiple top-level headings in the same document
+MD027: true  # Multiple spaces after blockquote symbol
+MD028: true  # Blank line inside blockquote
+MD029: true  # Ordered list item prefix
+MD030: true  # Spaces after list markers
+MD031: true  # Fenced code blocks should be surrounded by blank lines
+MD032: true  # Lists should be surrounded by blank lines
+MD033: true  # Inline HTML
+MD034: true  # Bare URL used
+MD036: true  # Emphasis used instead of a header
+MD037: true  # Spaces inside emphasis markers
+MD038: true  # Spaces inside code span elements
+MD039: true  # Spaces inside link elements
+MD040: true  # Fenced code blocks should have a language specified
+MD041: false # First line need not be h1
+MD046: true  # Code block style
+MD047: true  # Files should end with a single newline character
+MD048: true  # Code fence style
+MD049: true  # Required heading structure
+MD050: true  # Strong style should be consistent
+...
