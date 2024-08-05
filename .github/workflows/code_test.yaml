@@ -1,0 +1,70 @@
+---
+name: Code test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  integration-tests:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Run integration tests
+        run: cargo test --tests
+
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Run unit tests with coverage
+        run: cargo tarpaulin --tests --out Xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./tarpaulin-report.xml
+          flags: test_integration
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
+
+  unit-tests:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Run unit tests
+        run: cargo test --lib
+
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Run unit tests with coverage
+        run: cargo tarpaulin --tests --out Xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./tarpaulin-report.xml
+          flags: test_unit
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
+...

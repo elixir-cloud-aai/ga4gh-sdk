@@ -1,0 +1,64 @@
+---
+name: Code test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          component: fmt
+
+      - name: Run fmt checks
+        run: |
+          cargo fmt -- ./lib/src/serviceinfo/models/*.rs
+          cargo fmt -- ./lib/src/tes/models/*.rs
+          cargo fmt -- --check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          component: clippy
+
+      - name: Run unit tests
+        run: |	
+          cargo clippy -- -D warnings	
+
+  spell-check:
+    name: Spell check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.9.0'
+
+      - name: Install cspell
+        run: npm install -g cspell
+
+      - name: Spell check
+        run: cspell "**/*"
+...
