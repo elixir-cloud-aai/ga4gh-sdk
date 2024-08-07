@@ -13,10 +13,7 @@ TBA
 
 ## Building
 
-First, clone the repository, and then run the following command to automatically generate models using OpenAPI specifications:
-```
-bash ./build-models.sh
-```
+To update this repository with new versions of the API's, look at docs/autogenerate_OAI_models.md
 
 To build the project:
 ```
