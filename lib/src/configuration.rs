@@ -1,4 +1,7 @@
-/// Represents the configuration for the SDK.
+/// A struct representing a configuration for the SDK.
+///
+/// The `Configuration` struct is responsible for specifying details of the Endpoint where the requests are made.
+/// It provides methods for making constructing new configuration, changing the base url, and specifying a default configuration.
 #[derive(Debug, Clone)]
 pub struct Configuration {
     /// The base path for API requests.
@@ -16,7 +19,7 @@ pub struct Configuration {
 }
 
 /// Represents the basic authentication credentials.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BasicAuth {
     /// The username for basic authentication.
     pub username: String,
@@ -25,7 +28,7 @@ pub struct BasicAuth {
 }
 
 /// Represents the API key for authentication.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ApiKey {
     /// The prefix for the API key.
     pub prefix: Option<String>,

@@ -1,3 +1,31 @@
+/// A struct representing a transport for making HTTP requests.
+///
+/// The `Transport` struct is responsible for handling HTTP requests using the `reqwest` crate.
+/// It provides methods for making GET, POST, PUT, and DELETE requests.
+///
+/// # Examples
+///
+/// ```
+/// use crate::configuration::Configuration;
+/// use crate::transport::Transport;
+///
+/// let config = Configuration::new("https://api.example.com".to_string(), None, None, None);
+/// let transport = Transport::new(&config);
+///
+/// // Make a GET request
+/// let response = transport.get("/users", None).await;
+///
+/// // Make a POST request
+/// let data = serde_json::json!({"name": "John Doe", "age": 30});
+/// let response = transport.post("/users", Some(data)).await;
+///
+/// // Make a PUT request
+/// let data = serde_json::json!({"name": "John Doe", "age": 30});
+/// let response = transport.put("/users/1", data).await;
+///
+/// // Make a DELETE request
+/// let response = transport.delete("/users/1").await;
+/// ```
 use crate::configuration::Configuration;
 use log::error;
 use reqwest::Client;
@@ -12,6 +40,16 @@ pub struct Transport {
 }
 
 impl Transport {
+
+    /// Creates a new `Transport` instance with the given configuration.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - The configuration for the transport.
+    ///
+    /// # Returns
+    ///
+    /// A new `Transport` instance.
     pub fn new(config: &Configuration) -> Self {
         Transport {
             config: config.clone(),
@@ -19,6 +57,18 @@ impl Transport {
         }
     }
 
+    /// Sends an HTTP request with the specified method, endpoint, data, and parameters.
+    ///
+    /// # Arguments
+    ///
+    /// * `method` - The HTTP method for the request.
+    /// * `endpoint` - The endpoint for the request.
+    /// * `data` - The data to send with the request (optional).
+    /// * `params` - The query parameters for the request (optional).
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the response body as a string, or an error if the request fails.
     async fn request(
         &self,
         method: reqwest::Method,
@@ -79,6 +129,16 @@ impl Transport {
         }
     }
 
+    /// Sends a GET request to the specified endpoint with the given query parameters.
+    ///
+    /// # Arguments
+    ///
+    /// * `endpoint` - The endpoint for the request.
+    /// * `params` - The query parameters for the request (optional).
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the response body as a string, or an error if the request fails.
     pub async fn get(
         &self,
         endpoint: &str,
@@ -88,6 +148,16 @@ impl Transport {
             .await
     }
 
+    /// Sends a POST request to the specified endpoint with the given data.
+    ///
+    /// # Arguments
+    ///
+    /// * `endpoint` - The endpoint for the request.
+    /// * `data` - The data to send with the request (optional).
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the response body as a string, or an error if the request fails.
     pub async fn post(
         &self,
         endpoint: &str,
@@ -96,12 +166,31 @@ impl Transport {
         self.request(reqwest::Method::POST, endpoint, data, None)
             .await
     }
-
+    
+    /// Sends a PUT request to the specified endpoint with the given data.
+    ///
+    /// # Arguments
+    ///
+    /// * `endpoint` - The endpoint for the request.
+    /// * `data` - The data to send with the request.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the response body as a string, or an error if the request fails.
     pub async fn put(&self, endpoint: &str, data: Value) -> Result<String, Box<dyn Error>> {
         self.request(reqwest::Method::PUT, endpoint, Some(data), None)
             .await
     }
 
+    /// Sends a DELETE request to the specified endpoint.
+    ///
+    /// # Arguments
+    ///
+    /// * `endpoint` - The endpoint for the request.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the response body as a string, or an error if the request fails.
     pub async fn delete(&self, endpoint: &str) -> Result<String, Box<dyn Error>> {
         self.request(reqwest::Method::DELETE, endpoint, None, None)
             .await
@@ -117,12 +206,13 @@ mod tests {
     use crate::transport::Transport;
     use mockito::mock;
 
+    // effectively no sense in testing various responses, as it's reqwest's responsibility
+    // we should test Transport's methods instead
+
     #[tokio::test]
     async fn test_request() {
         setup();
         let base_url = &mockito::server_url();
-        // effectively no sense in testing various responses, as it's reqwest's responsibility
-        // we should test Transport's methods
         let _m = mock("GET", "/test")
             .with_status(200)
             .with_header("content-type", "application/json")
