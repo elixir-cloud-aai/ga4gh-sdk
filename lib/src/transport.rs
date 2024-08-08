@@ -29,6 +29,7 @@ impl Transport {
         let base_url = reqwest::Url::parse(&self.config.base_path)?;
         let url = base_url.join(endpoint).map_err(|e| {
             error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
+        })?;
         let url = reqwest::Url::parse(&full_url).map_err(|e| {
             error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
             Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid endpoint")) as Box<dyn std::error::Error>
