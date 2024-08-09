@@ -52,15 +52,12 @@ impl Configuration {
     /// A new instance of Configuration.
     pub fn new(
         base_path: Url,
-        user_agent: Option<String>,
-        basic_auth: Option<BasicAuth>,
-        oauth_access_token: Option<String>,
     ) -> Self {
         Configuration {
             base_path,
-            user_agent,
-            basic_auth,
-            oauth_access_token,
+            user_agent:None,
+            basic_auth: None,
+            oauth_access_token: None,
             bearer_access_token: None,
             api_key: None,
         }
@@ -77,6 +74,48 @@ impl Configuration {
     /// A mutable reference to the Configuration instance.
     pub fn set_base_path(&mut self, base_path: Url) -> &mut Self {
         self.base_path = base_path;
+        self
+    }
+    
+    /// Sets the user agent for API requests.
+    ///
+    /// # Arguments
+    ///
+    /// * `user_agent` - The user agent to be used in API requests.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of Configuration.
+    pub fn with_user_agent(mut self, user_agent: String) -> Self {
+        self.user_agent = Some(user_agent);
+        self
+    }
+
+    /// Sets the basic authentication credentials for API requests.
+    ///
+    /// # Arguments
+    ///
+    /// * `basic_auth` - The basic authentication credentials.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of Configuration.
+    pub fn with_basic_auth(mut self, basic_auth: BasicAuth) -> Self {
+        self.basic_auth = Some(basic_auth);
+        self
+    }
+
+    /// Sets the OAuth access token for API requests.
+    ///
+    /// # Arguments
+    ///
+    /// * `oauth_access_token` - The OAuth access token for authentication.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of Configuration.
+    pub fn with_oauth_access_token(mut self, oauth_access_token: String) -> Self {
+        self.oauth_access_token = Some(oauth_access_token);
         self
     }
 }
@@ -108,16 +147,16 @@ mod tests {
     #[test]
     fn test_new_configuration() {
         let config = Configuration::new(
-            Url::parse("https://api.example.com").unwrap(),
-            Some("My User Agent".to_owned()),
-            Some(BasicAuth {
-                username: "admin".to_owned(),
-                password: Some("password".to_owned()),
-            }),
-            Some("my_oauth_token".to_owned()),
-        );
+    Url::parse("https://api.example.com").unwrap(),
+        )
+        .with_user_agent("My User Agent".to_owned())
+        .with_basic_auth(BasicAuth {
+            username: "admin".to_owned(),
+            password: Some("password".to_owned()),
+        })
+        .with_oauth_access_token("my_oauth_token".to_owned());
 
-        assert_eq!(config.base_path.as_str(), "https://api.example.com");
+        assert_eq!(config.base_path.as_str(), "https://api.example.com/");
         assert_eq!(config.user_agent, Some("My User Agent".to_owned()));
         assert_eq!(
             config.basic_auth,
@@ -135,6 +174,6 @@ mod tests {
     fn test_set_base_path() {
         let mut config = Configuration::default();
         config.set_base_path(Url::parse("https://api.example.com").unwrap());
-        assert_eq!(config.base_path.as_str(), "https://api.example.com");
+        assert_eq!(config.base_path.as_str(), "https://api.example.com/");
     }
 }
