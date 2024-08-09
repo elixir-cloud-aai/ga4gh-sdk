@@ -1,3 +1,4 @@
+use url::Url;
 /// A struct representing a configuration for the SDK.
 ///
 /// The `Configuration` struct is responsible for specifying details of the Endpoint where the requests are made.
@@ -5,7 +6,7 @@
 #[derive(Debug, Clone)]
 pub struct Configuration {
     /// The base path for API requests.
-    pub base_path: String,
+    pub base_path: Url,
     /// The user agent to be used in API requests.
     pub user_agent: Option<String>,
     /// The basic authentication credentials.
@@ -50,7 +51,7 @@ impl Configuration {
     ///
     /// A new instance of Configuration.
     pub fn new(
-        base_path: String,
+        base_path: Url,
         user_agent: Option<String>,
         basic_auth: Option<BasicAuth>,
         oauth_access_token: Option<String>,
@@ -74,8 +75,8 @@ impl Configuration {
     /// # Returns
     ///
     /// A mutable reference to the Configuration instance.
-    pub fn set_base_path(&mut self, base_path: &str) -> &mut Self {        
-        self.base_path = base_path.to_string();
+    pub fn set_base_path(&mut self, base_path: Url) -> &mut Self {
+        self.base_path = base_path;
         self
     }
 }
@@ -89,7 +90,7 @@ impl Default for Configuration {
     /// This is used to define a configuration for a server that is running on your localhost
     fn default() -> Self {
         Configuration {
-            base_path: "localhost".to_owned(),
+            base_path: Url::parse("http://localhost").unwrap(),
             user_agent: Some("GA4GH SDK".to_owned()),
             basic_auth: None,
             oauth_access_token: None,
@@ -102,11 +103,12 @@ impl Default for Configuration {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use url::Url;
 
     #[test]
     fn test_new_configuration() {
         let config = Configuration::new(
-            "https://api.example.com".to_owned(),
+            Url::parse("https://api.example.com").unwrap(),
             Some("My User Agent".to_owned()),
             Some(BasicAuth {
                 username: "admin".to_owned(),
@@ -115,7 +117,7 @@ mod tests {
             Some("my_oauth_token".to_owned()),
         );
 
-        assert_eq!(config.base_path, "https://api.example.com");
+        assert_eq!(config.base_path.as_str(), "https://api.example.com");
         assert_eq!(config.user_agent, Some("My User Agent".to_owned()));
         assert_eq!(
             config.basic_auth,
@@ -132,8 +134,7 @@ mod tests {
     #[test]
     fn test_set_base_path() {
         let mut config = Configuration::default();
-        config.set_base_path("https://api.example.com");
-
-        assert_eq!(config.base_path, "https://api.example.com");
+        config.set_base_path(Url::parse("https://api.example.com").unwrap());
+        assert_eq!(config.base_path.as_str(), "https://api.example.com");
     }
 }
