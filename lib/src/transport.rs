@@ -199,7 +199,6 @@ impl Transport {
 #[cfg(test)]
 mod tests {
     use crate::configuration::Configuration;
-    // use crate::test_utils::setup;
     use crate::transport::Transport;
     use mockito::mock;
     use url::Url;
@@ -209,7 +208,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_request() {
-        // setup();
         let base_url_str = mockito::server_url();
         let base_url = Url::parse(&base_url_str).expect("Failed to parse mock server URL");
         
