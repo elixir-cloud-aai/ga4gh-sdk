@@ -9,7 +9,7 @@
 /// use crate::configuration::Configuration;
 /// use crate::transport::Transport;
 ///
-/// let config = Configuration::new("https://api.example.com".to_string(), None, None, None);
+/// let config = Configuration::new("Url::parse("https://api.example.com").unwrap() , None, None, None);
 /// let transport = Transport::new(&config);
 ///
 /// // Make a GET request
@@ -76,7 +76,7 @@ impl Transport {
         data: Option<Value>,
         params: Option<Value>,
     ) -> Result<String, Box<dyn Error>> {
-        let base_url = reqwest::Url::parse(&self.config.base_path)?;
+        let base_url = &self.config.base_path?;
         let url = base_url.join(endpoint).map_err(|e| {
             error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
         })?;
@@ -205,6 +205,7 @@ mod tests {
     use crate::test_utils::setup;
     use crate::transport::Transport;
     use mockito::mock;
+    use url::Url;
 
     // effectively no sense in testing various responses, as it's reqwest's responsibility
     // we should test Transport's methods instead
@@ -212,7 +213,9 @@ mod tests {
     #[tokio::test]
     async fn test_request() {
         setup();
-        let base_url = &mockito::server_url();
+        let base_url_str = mockito::server_url();
+        let base_url = Url::parse(&base_url_str).expect("Failed to parse mock server URL");
+        
         let _m = mock("GET", "/test")
             .with_status(200)
             .with_header("content-type", "application/json")
