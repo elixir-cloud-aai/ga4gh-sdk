@@ -76,11 +76,8 @@ impl Transport {
         data: Option<Value>,
         params: Option<Value>,
     ) -> Result<String, Box<dyn Error>> {
-        let base_url = &self.config.base_path?;
+        let base_url = &self.config.base_path;
         let url = base_url.join(endpoint).map_err(|e| {
-            error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
-        })?;
-        let url = reqwest::Url::parse(&full_url).map_err(|e| {
             error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
             Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid endpoint")) as Box<dyn std::error::Error>
         })?;
@@ -202,7 +199,7 @@ impl Transport {
 #[cfg(test)]
 mod tests {
     use crate::configuration::Configuration;
-    use crate::test_utils::setup;
+    // use crate::test_utils::setup;
     use crate::transport::Transport;
     use mockito::mock;
     use url::Url;
@@ -212,7 +209,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_request() {
-        setup();
+        // setup();
         let base_url_str = mockito::server_url();
         let base_url = Url::parse(&base_url_str).expect("Failed to parse mock server URL");
         
