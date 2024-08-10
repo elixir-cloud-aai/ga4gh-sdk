@@ -13,7 +13,7 @@ TBA
 
 ## Building
 
-To update or build new models of the models' structs with openapi for new versions of the GA4GH API's, look at `docs/autogenerate_OAI_models.md`
+**Developer note:** If you want to update any of the [OpenAPI](https://www.openapis.org/) specifications supported by this tool or extend it to support any other OpenAPI-backed services (e.g., not currently supported GA4GH API-based services or your own services), please refer to our [documentation for auto-generating OpenAPI models](docs/autogenerate_OAI_models.md).
 
 To build the project:
 ```

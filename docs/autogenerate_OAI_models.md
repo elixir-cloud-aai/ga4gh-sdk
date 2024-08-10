@@ -1,6 +1,11 @@
 ## Motivation
 You will only need to use the script to build models when any of the GA4GH API's openapi specs are updated. The models are being used to return the result of any API call in the correct format, in the correct structs
 
+## Prerequisites
+There are no particular prerequisites for running this script except giving permission to build-models.sh to run script.sh, which can be done by:
+```
+sudo chmod +x ./utils/script.sh
+```
 
 ## Usage
 
