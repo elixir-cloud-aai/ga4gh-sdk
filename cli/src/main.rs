@@ -68,10 +68,7 @@ use std::path::Path;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    run_cli(Command::new("cli")).await
-}
-async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
-    let cmd = cmd
+    let cmd = Command::new("cli")
         .bin_name("cli")
         .version("1.0")
         .about("CLI to manage tasks")
@@ -135,7 +132,8 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                         task_file.to_string()
                     },
                 };
-                let testask: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
+                let testask: TesTask = serde_json::from_str(&task_json)
+                    .map_err(|e| format!("Failed to parse JSON: {}", e))?;
                 let mut config = Configuration::default();
                 // let mut config = load_configuration();
                 let funnel_url = ensure_funnel_running().await;
@@ -156,10 +154,11 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                 let params = sub.value_of("params").unwrap().to_string();
                                 
                 // Split the params string into key-value pairs and collect into a HashMap for easier access
-                let params_map: HashMap<&str, &str> = params.split(',')
+                let params_map: HashMap<String, String> = params
+                    .split(',')
                     .filter_map(|s| {
                         let mut parts = s.trim().splitn(2, ':');
-                        parts.next().and_then(|key| parts.next().map(|value| (key.trim(), value.trim())))
+                        Some((parts.next()?.to_string(), parts.next()?.to_string()))
                     })
                     .collect();
                 println!("parameters are: {:?}",params_map);
@@ -167,7 +166,7 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
                 // Now, construct ListTasksParams from the parsed values
                 let parameters = ListTasksParams {
                     name_prefix: params_map.get("name_prefix").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
-                    state: params_map.get("state").and_then(|&s| if s == "None" { None } else { Some(serde_json::from_str(s).expect("Invalid state")) }),
+                    state: params_map.get("state").and_then(|&s| if s == "None" { None } else { Some(serde_json::from_str(&s).expect("Invalid state")) }),
                     tag_key: None, // Example does not cover parsing Vec<String>
                     tag_value: None, // Example does not cover parsing Vec<String>
                     page_size: params_map.get("page_size").and_then(|&s| if s == "None" { None } else { Some(s.parse().expect("Invalid page_size")) }),
@@ -248,7 +247,9 @@ async fn run_cli(cmd: Command<'_>) -> Result<(), Box<dyn Error>> {
             }
         }
         
-        _ => {println!("TODO");}
+        _ => {
+            eprintln!("Error: Unrecognized command or option");
+        }
     }
     Ok(())
 }
