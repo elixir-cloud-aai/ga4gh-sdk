@@ -204,7 +204,11 @@ mod tests {
         // setup(); – should be run once in the test function
         let mut config = Configuration::default();
         let funnel_url = ensure_funnel_running().await;
-        config.set_base_path(&funnel_url);
+
+        // Parse the funnel_url String into a Url
+        let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL format");
+
+        config.set_base_path(funnel_url);
         let tes = match TES::new(&config).await {
             Ok(tes) => tes,
             Err(e) => {
