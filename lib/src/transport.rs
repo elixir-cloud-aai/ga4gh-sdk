@@ -6,25 +6,32 @@
 /// # Examples
 ///
 /// ```
-/// use crate::configuration::Configuration;
-/// use crate::transport::Transport;
+/// use crate::ga4gh_sdk::configuration::Configuration;
+/// use crate::ga4gh_sdk::transport::Transport;
 ///
-/// let config = Configuration::new("Url::parse("https://api.example.com").unwrap() , None, None, None);
+/// let config = Configuration::new(url::Url::parse("https://api.example.com").unwrap());
 /// let transport = Transport::new(&config);
 ///
 /// // Make a GET request
+/// async {
 /// let response = transport.get("/users", None).await;
+/// };
 ///
 /// // Make a POST request
-/// let data = serde_json::json!({"name": "John Doe", "age": 30});
-/// let response = transport.post("/users", Some(data)).await;
-///
+/// async {
+///     let data = serde_json::json!({"name": "John Doe", "age": 30});
+///     let response = transport.post("/users", Some(data)).await;
+/// };
 /// // Make a PUT request
+/// async {
 /// let data = serde_json::json!({"name": "John Doe", "age": 30});
 /// let response = transport.put("/users/1", data).await;
+/// };
 ///
 /// // Make a DELETE request
+/// async {
 /// let response = transport.delete("/users/1").await;
+/// };
 /// ```
 use crate::configuration::Configuration;
 use log::error;
