@@ -6,8 +6,8 @@ members = [
 
 [workspace.package]
 version = "0.1.0"
-authors = ["Aarav Mehta <aarav05mehta@gmail.com> (Google Summer of Code Participant)", "Pavel Nikonorov <pavel@genxt.network> (Google Summer of Code Mentor; GENXT)", "ELIXIR Cloud & AAI <cloud-service@elixir-europe.org> (ELIXIR Europe)"]
+authors = ["Aarav Mehta <aarav05mehta@gmail.com>", "Pavel Nikonorov <pavel@genxt.network>", "ELIXIR Cloud & AAI <cloud-service@elixir-europe.org> (ELIXIR Europe)"]
 edition = "2021"
 readme = "./README.md"
-license-file = "LICENSE.txt"
+license-file = "LICENSE"
 repository = "https://github.com/elixir-cloud-aai/ga4gh-sdk.git"
