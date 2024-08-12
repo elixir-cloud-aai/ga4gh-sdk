@@ -13,10 +13,7 @@ DESTINATION_DIR="$3"
 
 # Define constants
 OPENAPI_GENERATOR_JAR=~/bin/openapitools/openapi-generator-cli.jar
-OPENAPI_URL_SERVICEINFO="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml"
-OPENAPI_URL_TES="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml"
 OPENAPI_GENERATOR_URL="https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar"
-SCRIPT_DIR="$(pwd)"
 SED_RULE="s/^use\s\+crate::models\s*;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::$API_NAME::models;/"
 TEMP_OUTPUT_DIR=$(mktemp -d)  # Define the temporary output directory for the OpenAPI generator
 
