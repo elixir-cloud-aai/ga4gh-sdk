@@ -109,7 +109,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     match matches.subcommand() {
         Some(("tes", sub)) => {
             if let Some(("create", sub)) = sub.subcommand() {
-                let task_file = sub.value_of("TASK_FILE").unwrap();
+                let task_file = sub.value_of("TASK_FILE")
+                    .ok_or_else(|| anyhow::anyhow!("TASK_FILE argument is required"))?;
                 // let url = sub.value_of("url").unwrap();
                 let path = Path::new(task_file);
                 if !path.exists() {
@@ -175,7 +176,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         println!("{:?}",task);
                     },
                     Err(e) => {
-                        println!("Error creating TES instance: {:?}", e);
+                        eprintln!("Error creating TES instance: {:?}", e);
                         return Err(e);
                     }
                 };
