@@ -165,13 +165,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                 // Now, construct ListTasksParams from the parsed values
                 let parameters = ListTasksParams {
-                    name_prefix: params_map.get("name_prefix").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
-                    state: params_map.get("state").and_then(|&s| if s == "None" { None } else { Some(serde_json::from_str(&s).expect("Invalid state")) }),
+                    name_prefix: params_map.get("name_prefix").and_then(|s| if s == "None" { None } else { Some(s.to_string()) }),
+                    state: params_map.get("state").and_then(|s| if s == "None" { None } else { Some(serde_json::from_str(&s).expect("Invalid state")) }),
                     tag_key: None, // Example does not cover parsing Vec<String>
                     tag_value: None, // Example does not cover parsing Vec<String>
-                    page_size: params_map.get("page_size").and_then(|&s| if s == "None" { None } else { Some(s.parse().expect("Invalid page_size")) }),
-                    page_token: params_map.get("page_token").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
-                    view: params_map.get("view").and_then(|&s| if s == "None" { None } else { Some(s.to_string()) }),
+                    page_size: params_map.get("page_size").and_then(|s| if s == "None" { None } else { Some(s.parse().expect("Invalid page_size")) }),
+                    page_token: params_map.get("page_token").and_then(|s| if s == "None" { None } else { Some(s.to_string()) }),
+                    view: params_map.get("view").and_then(|s| if s == "None" { None } else { Some(s.to_string()) }),
                 };
                 println!("parameters are: {:?}",parameters);
                 // let mut config = load_configuration();
