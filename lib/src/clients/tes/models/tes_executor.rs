@@ -10,7 +10,7 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::tes::models;
+use crate::clients::tes::models;
 use serde::{Deserialize, Serialize};
 
 /// TesExecutor : Executor describes a command to be executed, and its environment.

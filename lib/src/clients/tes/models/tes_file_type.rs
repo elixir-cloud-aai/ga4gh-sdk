@@ -10,31 +10,32 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::tes::models;
+use crate::clients::tes::models;
 use serde::{Deserialize, Serialize};
 
-/// ServiceType : Type of a GA4GH service
-#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ServiceType {
-    /// Namespace in reverse domain name format. Use `org.ga4gh` for implementations compliant with official GA4GH specifications. For services with custom APIs not standardized by GA4GH, or implementations diverging from official GA4GH specifications, use a different namespace (e.g. your organization's reverse domain name).
-    #[serde(rename = "group")]
-    pub group: String,
-    /// Name of the API or GA4GH specification implemented. Official GA4GH types should be assigned as part of standards approval process. Custom artifacts are supported.
-    #[serde(rename = "artifact")]
-    pub artifact: String,
-    /// Version of the API or specification. GA4GH specifications use semantic versioning.
-    #[serde(rename = "version")]
-    pub version: String,
+/// TesFileType : Define if input/output element is a file or a directory. It is not required that the user provide this value, but it is required that the server fill in the value once the information is avalible at run time.
+/// Define if input/output element is a file or a directory. It is not required that the user provide this value, but it is required that the server fill in the value once the information is avalible at run time.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum TesFileType {
+    #[serde(rename = "FILE")]
+    File,
+    #[serde(rename = "DIRECTORY")]
+    Directory,
+
 }
 
-impl ServiceType {
-    /// Type of a GA4GH service
-    pub fn new(group: String, artifact: String, version: String) -> ServiceType {
-        ServiceType {
-            group,
-            artifact,
-            version,
+impl std::fmt::Display for TesFileType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::File => write!(f, "FILE"),
+            Self::Directory => write!(f, "DIRECTORY"),
         }
+    }
+}
+
+impl Default for TesFileType {
+    fn default() -> TesFileType {
+        Self::File
     }
 }
 

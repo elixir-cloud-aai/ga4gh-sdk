@@ -10,7 +10,7 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::tes::models;
+use crate::clients::tes::models;
 use serde::{Deserialize, Serialize};
 
 /// TesOutputFileLog : OutputFileLog describes a single output file. This describes file details after the task has completed successfully, for logging purposes.

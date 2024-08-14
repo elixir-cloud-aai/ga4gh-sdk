@@ -10,7 +10,7 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::tes::models;
+use crate::clients::tes::models;
 use serde::{Deserialize, Serialize};
 
 /// TesTask : Task describes an instance of a task.

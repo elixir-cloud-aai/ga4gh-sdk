@@ -10,40 +10,44 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::tes::models;
+use crate::clients::tes::models;
 use serde::{Deserialize, Serialize};
 
+/// TesInput : Input describes Task input files.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct TesServiceType {
-    /// Namespace in reverse domain name format. Use `org.ga4gh` for implementations compliant with official GA4GH specifications. For services with custom APIs not standardized by GA4GH, or implementations diverging from official GA4GH specifications, use a different namespace (e.g. your organization's reverse domain name).
-    #[serde(rename = "group")]
-    pub group: String,
-    #[serde(rename = "artifact")]
-    pub artifact: Artifact,
-    /// Version of the API or specification. GA4GH specifications use semantic versioning.
-    #[serde(rename = "version")]
-    pub version: String,
+pub struct TesInput {
+    #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "description", skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// REQUIRED, unless \"content\" is set.  URL in long term storage, for example:  - s3://my-object-store/file1  - gs://my-bucket/file2  - file:///path/to/my/file  - /path/to/my/file
+    #[serde(rename = "url", skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    /// Path of the file inside the container. Must be an absolute path.
+    #[serde(rename = "path")]
+    pub path: String,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<models::TesFileType>,
+    /// File content literal.  Implementations should support a minimum of 128 KiB in this field and may define their own maximum.  UTF-8 encoded  If content is not empty, \"url\" must be ignored.
+    #[serde(rename = "content", skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    /// Indicate that a file resource could be accessed using a streaming interface, ie a FUSE mounted s3 object. This flag indicates that using a streaming mount, as opposed to downloading the whole file to the local scratch space, may be faster despite the latency and overhead. This does not mean that the backend will use a streaming interface, as it may not be provided by the vendor, but if the capacity is avalible it can be used without degrading the performance of the underlying program.
+    #[serde(rename = "streamable", skip_serializing_if = "Option::is_none")]
+    pub streamable: Option<bool>,
 }
 
-impl TesServiceType {
-    pub fn new(group: String, artifact: Artifact, version: String) -> TesServiceType {
-        TesServiceType {
-            group,
-            artifact,
-            version,
+impl TesInput {
+    /// Input describes Task input files.
+    pub fn new(path: String) -> TesInput {
+        TesInput {
+            name: None,
+            description: None,
+            url: None,
+            path,
+            r#type: None,
+            content: None,
+            streamable: None,
         }
-    }
-}
-/// 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum Artifact {
-    #[serde(rename = "tes")]
-    Tes,
-}
-
-impl Default for Artifact {
-    fn default() -> Artifact {
-        Self::Tes
     }
 }
 

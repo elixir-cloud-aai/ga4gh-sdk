@@ -10,38 +10,26 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::tes::models;
+use crate::clients::tes::models;
 use serde::{Deserialize, Serialize};
 
-/// TesExecutorLog : ExecutorLog describes logging information related to an Executor.
+/// TesListTasksResponse : ListTasksResponse describes a response from the ListTasks endpoint.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct TesExecutorLog {
-    /// Time the executor started, in RFC 3339 format.
-    #[serde(rename = "start_time", skip_serializing_if = "Option::is_none")]
-    pub start_time: Option<String>,
-    /// Time the executor ended, in RFC 3339 format.
-    #[serde(rename = "end_time", skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<String>,
-    /// Stdout content.  This is meant for convenience. No guarantees are made about the content. Implementations may chose different approaches: only the head, only the tail, a URL reference only, etc.  In order to capture the full stdout client should set Executor.stdout to a container file path, and use Task.outputs to upload that file to permanent storage.
-    #[serde(rename = "stdout", skip_serializing_if = "Option::is_none")]
-    pub stdout: Option<String>,
-    /// Stderr content.  This is meant for convenience. No guarantees are made about the content. Implementations may chose different approaches: only the head, only the tail, a URL reference only, etc.  In order to capture the full stderr client should set Executor.stderr to a container file path, and use Task.outputs to upload that file to permanent storage.
-    #[serde(rename = "stderr", skip_serializing_if = "Option::is_none")]
-    pub stderr: Option<String>,
-    /// Exit code.
-    #[serde(rename = "exit_code")]
-    pub exit_code: i32,
+pub struct TesListTasksResponse {
+    /// List of tasks. These tasks will be based on the original submitted task document, but with other fields, such as the job state and logging info, added/changed as the job progresses.
+    #[serde(rename = "tasks")]
+    pub tasks: Vec<models::TesTask>,
+    /// Token used to return the next page of results. This value can be used in the `page_token` field of the next ListTasks request.
+    #[serde(rename = "next_page_token", skip_serializing_if = "Option::is_none")]
+    pub next_page_token: Option<String>,
 }
 
-impl TesExecutorLog {
-    /// ExecutorLog describes logging information related to an Executor.
-    pub fn new(exit_code: i32) -> TesExecutorLog {
-        TesExecutorLog {
-            start_time: None,
-            end_time: None,
-            stdout: None,
-            stderr: None,
-            exit_code,
+impl TesListTasksResponse {
+    /// ListTasksResponse describes a response from the ListTasks endpoint.
+    pub fn new(tasks: Vec<models::TesTask>) -> TesListTasksResponse {
+        TesListTasksResponse {
+            tasks,
+            next_page_token: None,
         }
     }
 }

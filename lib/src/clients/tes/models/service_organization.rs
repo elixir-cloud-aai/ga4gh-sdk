@@ -10,32 +10,27 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::tes::models;
+use crate::clients::tes::models;
 use serde::{Deserialize, Serialize};
 
-/// TesFileType : Define if input/output element is a file or a directory. It is not required that the user provide this value, but it is required that the server fill in the value once the information is avalible at run time.
-/// Define if input/output element is a file or a directory. It is not required that the user provide this value, but it is required that the server fill in the value once the information is avalible at run time.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum TesFileType {
-    #[serde(rename = "FILE")]
-    File,
-    #[serde(rename = "DIRECTORY")]
-    Directory,
-
+/// ServiceOrganization : Organization providing the service
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ServiceOrganization {
+    /// Name of the organization responsible for the service
+    #[serde(rename = "name")]
+    pub name: String,
+    /// URL of the website of the organization (RFC 3986 format)
+    #[serde(rename = "url")]
+    pub url: String,
 }
 
-impl std::fmt::Display for TesFileType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::File => write!(f, "FILE"),
-            Self::Directory => write!(f, "DIRECTORY"),
+impl ServiceOrganization {
+    /// Organization providing the service
+    pub fn new(name: String, url: String) -> ServiceOrganization {
+        ServiceOrganization {
+            name,
+            url,
         }
-    }
-}
-
-impl Default for TesFileType {
-    fn default() -> TesFileType {
-        Self::File
     }
 }
 
