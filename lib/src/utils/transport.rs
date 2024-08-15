@@ -6,8 +6,8 @@
 /// # Examples
 ///
 /// ```
-/// use crate::ga4gh_sdk::configuration::Configuration;
-/// use crate::ga4gh_sdk::transport::Transport;
+/// use crate::ga4gh_sdk::utils::configuration::Configuration;
+/// use crate::ga4gh_sdk::utils::transport::Transport;
 ///
 /// let config = Configuration::new(url::Url::parse("https://api.example.com").unwrap());
 /// let transport = Transport::new(&config);
@@ -33,7 +33,7 @@
 /// let response = transport.delete("/users/1").await;
 /// };
 /// ```
-use crate::configuration::Configuration;
+use crate::utils::configuration::Configuration;
 use log::error;
 use reqwest::Client;
 use serde_json::Value;
@@ -205,8 +205,8 @@ impl Transport {
 
 #[cfg(test)]
 mod tests {
-    use crate::configuration::Configuration;
-    use crate::transport::Transport;
+    use crate::utils::configuration::Configuration;
+    use crate::utils::transport::Transport;
     use mockito::mock;
     use url::Url;
 
