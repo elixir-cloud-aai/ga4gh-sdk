@@ -10,7 +10,7 @@
 
 #![allow(unused_imports)]
 #![allow(clippy::empty_docs)]
-use crate::serviceinfo::models;
+use crate::clients::serviceinfo::models;
 use serde::{Deserialize, Serialize};
 
 /// ServiceType : Type of a GA4GH service
