@@ -102,25 +102,57 @@ use serde_json::json;
 use serde::Serialize;
 use serde_json::Value;
 
+/// Serializes any serializable item into a JSON `Value`.
+///
+/// # Arguments
+/// - `item`: The item to serialize.
+///
+/// # Returns
+/// - A `serde_json::Value` containing the serialized JSON.
+///
+/// # Panics
+/// - If serialization fails, the function will panic.
 fn serialize_to_json<T: Serialize>(item: T) -> Value {
     serde_json::to_value(&item).unwrap()
 }
 
+/// URL-encodes a string.
+///
+/// # Arguments
+/// - `s`: A reference to a string to encode.
+///
+/// # Returns
+/// - A `String` containing the URL-encoded value.
 pub fn urlencode<T: AsRef<str>>(s: T) -> String {
     ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
 }
 
 #[derive(Debug)]
 pub struct Task {
+    /// The unique ID of the task.
     pub id: String,
+    /// The transport layer for sending HTTP requests.
     pub transport: Transport,
 }
 
 impl Task {
+    /// Creates a new `Task` instance.
+    ///
+    /// # Arguments
+    /// - `id`: The task ID.
+    /// - `transport`: The `Transport` instance for HTTP communication.
+    ///
+    /// # Returns
+    /// - A new `Task` instance.
     pub fn new(id: String, transport: Transport) -> Self {
         Task { id, transport }
     }
 
+    /// Fetches the current status of the task.
+    ///
+    /// # Returns
+    /// - On success, returns a `TesState` representing the task state.
+    /// - On failure, returns an error.
     pub async fn status(&self) -> Result<TesState, Box<dyn std::error::Error>> {
         let task_id = &self.id;
         let view = "FULL";
@@ -139,6 +171,11 @@ impl Task {
         }
     }
 
+    /// Cancels the task.
+    ///
+    /// # Returns
+    /// - On success, returns a `serde_json::Value` containing the server's response.
+    /// - On failure, returns an error.
     pub async fn cancel(&self) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let id = &self.id;
         let id = &urlencode(id);
@@ -156,6 +193,8 @@ impl Task {
 	}
     }
 }
+
+/// The main struct for interacting with a TES service.
 #[derive(Debug)]
 pub struct TES {
     #[allow(dead_code)]
@@ -165,6 +204,13 @@ pub struct TES {
 }
 
 impl TES {
+    /// Creates a new `TES` instance.
+    ///
+    /// # Arguments
+    /// - `config`: A reference to the service configuration.
+    ///
+    /// # Returns
+    /// - A new `TES` instance, or an error if the initialization fails.
     pub async fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
         let transport = Transport::new(config);
         let service_info = ServiceInfo::new(config)?;
@@ -181,6 +227,11 @@ impl TES {
         Ok(instance)
     }
 
+    /// Checks if the service is of TES class.
+    ///
+    /// # Returns
+    /// - Ok(()) if the service is valid.
+    /// - Err(String) if the service is invalid or an error occurs.
     fn check(&self) -> Result<(), String> {
         let resp = &self.service;
         match resp.as_ref() {
@@ -190,6 +241,14 @@ impl TES {
         }
     }
 
+    /// Creates a new TES task.
+    ///
+    /// # Arguments
+    /// - `task`: The `TesTask` to create.
+    ///
+    /// # Returns
+    /// - On success, returns a `Task` containing the created task details.
+    /// - On failure, returns an error.
     pub async fn create(
         &self,
         task: TesTask, /*, params: models::TesTask*/
@@ -228,13 +287,19 @@ impl TES {
         }
     }
 
+    /// Retrieves the details of a specific TES task.
+    ///
+    /// # Arguments
+    /// - `view`: The level of detail to include in the response (e.g., `FULL`).
+    /// - `id`: The task ID.
+    ///
+    /// # Returns
+    /// - On success, returns a `TesTask` containing the task details.
+    /// - On failure, returns an error.
     pub async fn get(&self, view: &str, id: &str) -> Result<TesTask, Box<dyn std::error::Error>> {
-        let task_id = id;
-        let url = format!("/tasks/{}?view={}", task_id, view);
-        // let params = [("view", view)];
-        // let params_value = serde_json::json!(params);
-        // let response = self.transport.get(&url, Some(params_value)).await;
+        let url = format!("/tasks/{}?view={}", id, view);
         let response = self.transport.get(&url, None).await;
+
         match response {
             Ok(resp_str) => {
                 let task: TesTask = from_str(&resp_str)?;
@@ -243,6 +308,15 @@ impl TES {
             Err(e) => Err(e),
         }
     }
+
+    /// Lists TES tasks based on provided filtering parameters.
+    ///
+    /// # Arguments
+    /// - `params`: Optional filtering parameters for listing tasks.
+    ///
+    /// # Returns
+    /// - On success, returns a `TesListTasksResponse` containing the task list.
+    /// - On failure, returns an error.
     pub async fn list_tasks(
         &self,
         params: Option<ListTasksParams>,
