@@ -1,3 +1,6 @@
+/// This module provides a client for interacting with the Task Execution Service (TES).
+///
+/// The `TES` struct represents a TES client and provides methods for creating tasks, retrieving task status, canceling tasks, and listing tasks.
 pub mod models;
 pub mod model;
 use crate::utils::configuration::Configuration;
@@ -37,9 +40,6 @@ impl Task {
         let task_id = &self.id;
         let view = "FULL";
         let url = format!("/tasks/{}?view={}", task_id, view);
-        // let params = [("view", view)];
-        // let params_value = serde_json::json!(params);
-        // let response = self.transport.get(&url, Some(params_value)).await;
         let response = self.transport.get(&url, None).await;
         match response {
             Ok(resp_str) => {
@@ -183,5 +183,117 @@ impl TES {
                 )))
             }
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use crate::clients::serviceinfo::models::ServiceType;
+
+    use super::*;
+    use mockito::mock;
+    use mockito::server_url;
+
+
+    #[tokio::test]
+    async fn test_tes_create() {
+        let _m = mock("POST", "/ga4gh/tes/v1/tasks")
+            .with_status(200)
+            .with_body(r#"{"id": "123"}"#)
+            .create();
+
+        let mock_url = url::Url::parse(&server_url()).expect("Invalid URL");
+        let config= Configuration::new(mock_url);
+        let transport = Transport::new(&config);
+        
+        let tes = TES {
+            config,
+            service: Ok(Service {
+                r#type: Box::new(ServiceType {
+                    artifact: "tes".to_string(),
+                    ..Default::default()
+                }),
+                ..Service::default()
+            }),
+            transport,
+        };
+
+        let task = TesTask::default();
+        let result = tes.create(task).await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().id, String::from("123"));
+    }
+
+    #[tokio::test]
+    async fn test_task_status() {
+        let _m = mock("GET", "/tasks/123?view=FULL")
+            .with_status(200)
+            .with_body(r#"{"state": "COMPLETE", "executors": []}"#)
+            .create();
+        let mock_url = url::Url::parse(&server_url()).expect("Invalid URL");
+        let transport = Transport::new(&Configuration::new(mock_url));
+        let task = Task::new("123".to_string(), transport);
+
+        let result = task.status().await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), TesState::Complete);
+    }
+
+    #[tokio::test]
+    async fn test_task_cancel() {
+        let _m = mock("POST", "/tasks/123:cancel")
+            .with_status(200)
+            .with_body(r#"{"status": "CANCELLED", "executors": []}"#)
+            .create();
+
+        let mock_url = url::Url::parse(&server_url()).expect("Invalid URL");
+        let transport = Transport::new(&Configuration::new(mock_url));
+
+        let task = Task::new("123".to_string(), transport);
+
+        let result = task.cancel().await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap()["status"], "CANCELLED");
+    }
+
+    #[tokio::test]
+    async fn test_tes_get() {
+        let _m = mock("GET", "/tasks/123?view=FULL")
+            .with_status(200)
+            .with_body(r#"{"id": "123", "state": "COMPLETE", "executors": []}"#)
+            .create();
+
+        let mock_url = url::Url::parse(&server_url()).expect("Invalid URL");
+        let config= Configuration::new(mock_url);
+        let transport = Transport::new(&config);
+        let tes = TES {
+            config,
+            service: Ok(Service::default()),
+            transport,
+        };
+
+        let result = tes.get("FULL", "123").await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().id, Some(String::from("123")));
+    }
+
+    #[tokio::test]
+    async fn test_tes_list_tasks() {
+        let _m = mock("GET", "/tasks")
+            .with_status(200)
+            .with_body(r#"{"tasks": []}"#)
+            .create();
+
+        let mock_url = url::Url::parse(&server_url()).expect("Invalid URL");
+        let config= Configuration::new(mock_url);
+        let transport = Transport::new(&config);
+        let tes = TES {
+            config,
+            service: Ok(Service::default()),
+            transport,
+        };
+
+        let result = tes.list_tasks(None).await;
+        assert!(result.is_ok());
+        assert!(result.unwrap().tasks.is_empty());
     }
 }
