@@ -1,4 +1,4 @@
-use crate::tes::models;
+use crate::clients::tes::models;
 
 /// struct for passing parameters to the method [`list_tasks`]
 #[derive(Serialize, Clone, Debug)]

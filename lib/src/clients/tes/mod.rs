@@ -1,13 +1,13 @@
 pub mod models;
 pub mod model;
-use crate::configuration::Configuration;
-use crate::serviceinfo::models::Service;
-use crate::serviceinfo::ServiceInfo;
-use crate::tes::models::TesListTasksResponse;
-use crate::tes::models::TesState;
-use crate::tes::models::TesTask;
-use crate::transport::Transport;
-use crate::tes::model::ListTasksParams;
+use crate::utils::configuration::Configuration;
+use crate::clients::serviceinfo::models::Service;
+use crate::clients::serviceinfo::ServiceInfo;
+use crate::clients::tes::models::TesListTasksResponse;
+use crate::clients::tes::models::TesState;
+use crate::clients::tes::models::TesTask;
+use crate::utils::transport::Transport;
+use crate::clients::tes::model::ListTasksParams;
 use serde_json;
 use serde_json::from_str;
 use serde_json::json;
@@ -24,8 +24,8 @@ pub fn urlencode<T: AsRef<str>>(s: T) -> String {
 
 #[derive(Debug)]
 pub struct Task {
-    id: String,
-    transport: Transport,
+    pub id: String,
+    pub transport: Transport,
 }
 
 impl Task {
@@ -114,7 +114,6 @@ impl TES {
             log::error!("Service check failed: {}", e);
             e
         })?;
-        // todo: version in url based on serviceinfo or user config
         let response = self
             .transport
             .post("/ga4gh/tes/v1/tasks", Some(json!(task)))
@@ -164,8 +163,6 @@ impl TES {
         params: Option<ListTasksParams>,
     ) -> Result<TesListTasksResponse, Box<dyn std::error::Error>> {
         let params_value = params.map(serialize_to_json);
-
-        // println!("{:?}",params_value);
         // Make the request with or without parameters based on the presence of params
         let response = if let Some(params_value) = params_value {
             self.transport.get("/tasks", Some(params_value)).await
@@ -186,99 +183,5 @@ impl TES {
                 )))
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::configuration::Configuration;
-    use crate::tes::models::TesTask;
-    use crate::tes::ListTasksParams;
-    use crate::tes::Task;
-    use crate::tes::TesState;
-    use crate::tes::TES;
-    use crate::test_utils::{ensure_funnel_running, setup};
-    // use crate::tes::models::TesCreateTaskResponse;
-
-    async fn create_task() -> Result<(Task, TES), Box<dyn std::error::Error>> {
-        // setup(); – should be run once in the test function
-        let mut config = Configuration::default();
-        let funnel_url = ensure_funnel_running().await;
-        config.set_base_path(&funnel_url);
-        let tes = match TES::new(&config).await {
-            Ok(tes) => tes,
-            Err(e) => {
-                println!("Error creating TES instance: {:?}", e);
-                return Err(e);
-            }
-        };
-        let file_path = "./tests/sample.tes".to_string();
-        let task_json = std::fs::read_to_string(file_path).expect("Unable to read file");
-        let task: TesTask = serde_json::from_str(&task_json).expect("JSON was not well-formatted");
-
-        let task = tes.create(task).await?;
-        Ok((task, tes))
-    }
-
-    #[tokio::test]
-    async fn test_task_create() {
-        setup();
-        let (task, _tes) = create_task().await.expect("Failed to create task");
-        assert!(!task.id.is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
-    }
-
-    #[tokio::test]
-    async fn test_task_status() {
-        setup();
-
-        let (task, _tes) = create_task().await.expect("Failed to create task");
-        assert!(!task.id.is_empty(), "Task ID should not be empty");
-
-        let status = task.status().await;
-        match status {
-            Ok(state) => {
-                assert!(
-                    matches!(state, TesState::Initializing | TesState::Queued | TesState::Running),
-                    "Unexpected state: {:?}",
-                    state
-                );
-            }
-            Err(err) => {
-                panic!("Task status returned an error: {:?}", err);
-            }
-        }
-    }
-
-    #[tokio::test]
-    async fn test_cancel_task() {
-        setup();
-
-        let (task, _tes) = &create_task().await.expect("Failed to create task");
-        assert!(!task.id.is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
-
-        let cancel = task.cancel().await;
-        assert!(cancel.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_list_task() {
-        setup();
-
-        let (task, tes) = &create_task().await.expect("Failed to create task");
-        assert!(!task.id.is_empty(), "Task ID should not be empty"); // double check if it's a correct assertion
-
-        let params: ListTasksParams = ListTasksParams {
-            name_prefix: None,
-            state: None,
-            tag_key: None,
-            tag_value: None,
-            page_size: None,
-            page_token: None,
-            view: Some("BASIC".to_string()),
-        };
-
-        let list = tes.list_tasks(Some(params)).await;
-        assert!(list.is_ok());
-        println!("{:?}", list);
     }
 }
