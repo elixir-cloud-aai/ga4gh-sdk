@@ -2,5 +2,5 @@
 #[macro_use]
 extern crate serde_derive;
 
-pub mod configuration;
-pub mod transport;
+pub mod utils;
+pub mod clients;
