@@ -6,8 +6,8 @@
 /// # Examples
 ///
 /// ```
-/// use crate::ga4gh_sdk::configuration::Configuration;
-/// use crate::ga4gh_sdk::transport::Transport;
+/// use crate::ga4gh_sdk::utils::configuration::Configuration;
+/// use crate::ga4gh_sdk::utils::transport::Transport;
 ///
 /// let config = Configuration::new(url::Url::parse("https://api.example.com").unwrap());
 /// let transport = Transport::new(&config);

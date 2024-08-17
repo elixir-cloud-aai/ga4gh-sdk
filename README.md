@@ -24,8 +24,15 @@ cargo build
 ```
 
 ## Testing
+There are 2 types of Tests: Unit tests and integration tests.
 
-Before running the tests, you need to install Funnel, a task execution system that is compatible with the GA4GH TES API. Follow the instructions in the Funnel Developer's Guide to install Funnel: https://ohsu-comp-bio.github.io/funnel/docs/development/developers/. Note that the link may change over time, so refer to the official Funnel repository or website for the most up-to-date information.
+To run the unit tests, which are being tested with mock servers, you can simply run
+```
+cargo test
+```
+
+To test the integration tests:
+Before running the integration tests, you need to install Funnel, a task execution system that is compatible with the GA4GH TES API. Follow the instructions in the Funnel Developer's Guide to install Funnel: https://ohsu-comp-bio.github.io/funnel/docs/development/developers/. Note that the link may change over time, so refer to the official Funnel repository or website for the most up-to-date information.
 
 Once you have installed Funnel, you can run the tests. This will automatically run Funnel as well:
 
