@@ -33,7 +33,7 @@
 /// let response = transport.delete("/users/1").await;
 /// };
 /// ```
-use crate::configuration::Configuration;
+use crate::utils::configuration::Configuration;
 use log::error;
 use reqwest::Client;
 use serde_json::Value;
@@ -205,8 +205,8 @@ impl Transport {
 
 #[cfg(test)]
 mod tests {
-    use crate::configuration::Configuration;
-    use crate::transport::Transport;
+    use crate::utils::configuration::Configuration;
+    use crate::utils::transport::Transport;
     use mockito::mock;
     use url::Url;
 
