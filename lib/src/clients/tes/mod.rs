@@ -1,6 +1,91 @@
-/// This module provides a client for interacting with the Task Execution Service (TES).
+/// This module provides a client for interacting with the TES (Task Execution Service) API.
 ///
 /// The `TES` struct represents a TES client and provides methods for creating tasks, retrieving task status, canceling tasks, and listing tasks.
+///
+/// # Examples
+///
+/// Creating a TES client:
+///
+/// ```rust
+/// use ga4gh_sdk::clients::tes::TES;
+/// use ga4gh_sdk::utils::configuration::Configuration;
+///
+/// # async fn test_tes_new() -> Result<(), Box<dyn std::error::Error>> {
+/// let config = Configuration::new(url::Url::parse("http://example.com")?);
+/// let tes_result = TES::new(&config).await;
+/// // Check if the client was created successfully
+/// assert!(tes_result.is_ok());
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Creating a task:
+///
+/// ```rust
+/// use ga4gh_sdk::clients::tes::TES;
+/// use ga4gh_sdk::utils::configuration::Configuration;
+/// use ga4gh_sdk::clients::tes::models::TesTask;
+///
+/// # async fn test_tes() -> Result<(), Box<dyn std::error::Error>> {
+/// let config = Configuration::new(url::Url::parse("http://example.com")?);
+/// let tes = TES::new(&config).await?;
+/// let task = TesTask::default();
+/// let result = tes.create(task).await?;
+/// assert_eq!(result.id, "123");
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Retrieving task status:
+///
+/// ```rust
+/// use ga4gh_sdk::clients::tes::Task;
+/// use ga4gh_sdk::utils::configuration::Configuration;
+/// use ga4gh_sdk::clients::tes::models::TesState;
+/// use ga4gh_sdk::utils::transport::Transport;
+///
+/// # async fn test_task_status() -> Result<(), Box<dyn std::error::Error>> {
+/// let config = Configuration::new(url::Url::parse("http://example.com")?);
+/// let transport = Transport::new(&config);
+/// let task = Task::new("123".to_string(), transport);
+/// let result = task.status().await?;
+/// assert_eq!(result, TesState::Complete);
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Canceling a task:
+///
+/// ```rust
+/// use ga4gh_sdk::clients::tes::Task;
+/// use ga4gh_sdk::utils::configuration::Configuration;
+/// use ga4gh_sdk::utils::transport::Transport;
+///
+/// # async fn test_task_cancel() -> Result<(), Box<dyn std::error::Error>> {
+/// let config = Configuration::new(url::Url::parse("http://example.com")?);
+/// let transport = Transport::new(&config);
+/// let task = Task::new("123".to_string(), transport);
+/// let result = task.cancel().await?;
+/// assert_eq!(result["status"], "CANCELLED");
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Listing tasks:
+///
+/// ```rust
+/// use ga4gh_sdk::clients::tes::TES;
+/// use ga4gh_sdk::utils::configuration::Configuration;
+/// use ga4gh_sdk::clients::tes::model::ListTasksParams;
+///
+/// # async fn test_tes_list_tasks() -> Result<(), Box<dyn std::error::Error>> {
+/// let config = Configuration::new(url::Url::parse("http://example.com")?);
+/// let tes = TES::new(&config).await?;
+/// let result = tes.list_tasks(None).await?;
+/// assert!(result.tasks.is_empty());
+/// # Ok(())
+/// # }
+/// ```
 pub mod models;
 pub mod model;
 use crate::utils::configuration::Configuration;
