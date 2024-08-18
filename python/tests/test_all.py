@@ -1,22 +1,6 @@
 import pytest
-import ga4gh
 from unittest.mock import patch
-from ga4gh import Configuration, Transport, ServiceInfo
-
-def test_configuration():
-    # Test creating a Configuration instance
-    base_path = "http://example.com/api"
-    config = ga4gh.Configuration(base_path)
-    
-    # Verify the base path was set correctly
-    assert config.get_base_path() == base_path
-    
-    # Test setting a new base path
-    new_base_path = "http://example.com/new-api"
-    config.set_base_path(new_base_path)
-    
-    # Verify the new base path
-    assert config.get_base_path() == new_base_path
+from ga4gh import Configuration, Transport, ServiceInfo, TES
 
 @pytest.fixture
 def config():
@@ -30,6 +14,9 @@ def transport(config):
 def service_info(config):
     return ServiceInfo(config)
 
+@pytest.fixture
+def tes(config):
+    return TES.new(config)
 
 @patch.object(ServiceInfo, 'get_service_info')
 def test_get_service_info(mock_get_service_info, service_info):
@@ -80,5 +67,22 @@ def test_transport_delete(mock_delete, transport):
     
     assert result == '{"deleted": true}'
     print(result)
+
+
+def test_configuration():
+    # Test creating a Configuration instance
+    base_path = "http://example.com/api"
+    config = Configuration(base_path)
+    
+    # Verify the base path was set correctly
+    assert config.get_base_path() == base_path
+    
+    # Test setting a new base path
+    new_base_path = "http://example.com/new-api"
+    config.set_base_path(new_base_path)
+    
+    # Verify the new base path
+    assert config.get_base_path() == new_base_path
+
 if __name__ == "__main__":
     pytest.main()

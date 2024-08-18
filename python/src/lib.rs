@@ -1,5 +1,7 @@
 use ::ga4gh_sdk::clients::serviceinfo::ServiceInfo;
-use ga4gh_sdk::clients::tes::Task;
+use ga4gh_sdk::clients::tes::model::ListTasksParams;
+use ga4gh_sdk::clients::tes::models::{TesListTasksResponse, TesTask};
+use ga4gh_sdk::clients::tes::{Task, TES};
 use ::ga4gh_sdk::utils::configuration::Configuration;
 use ::ga4gh_sdk::utils::transport::Transport;
 use pyo3::prelude::*;
@@ -38,6 +40,49 @@ impl PyTask {
             Ok(response) => Ok(response.to_string()),
             Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
                 "Failed to cancel task: {}",
+                e
+            ))),
+        }
+    }
+}
+
+/// Expose the TES struct to Python
+#[pyclass(unsendable, name = "TES", module = "ga4gh")]
+struct PyTES {
+    inner: TES,
+}
+
+#[pymethods]
+impl PyTES {
+    #[new]
+    pub fn new(config: &PyConfiguration) -> PyResult<Self> {
+        let rt = Runtime::new().unwrap();
+        match rt.block_on(TES::new(&config.inner)) {
+            Ok(instance) => Ok(PyTES { inner: instance }),
+            Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "Failed to create TES instance: {}",
+                e
+            ))),
+        }
+    }
+
+    pub fn create(&self, task: &PyTesTask) -> PyResult<PyTask> {
+        let rt = Runtime::new().unwrap();
+        match rt.block_on(self.inner.create(task.inner.clone())) {
+            Ok(task) => Ok(PyTask { inner: task }),
+            Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "Failed to create task: {}",
+                e
+            ))),
+        }
+    }
+
+    pub fn get(&self, view: &str, id: &str) -> PyResult<PyTesTask> {
+        let rt = Runtime::new().unwrap();
+        match rt.block_on(self.inner.get(view, id)) {
+            Ok(task) => Ok(PyTesTask { inner: task }),
+            Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "Failed to get task: {}",
                 e
             ))),
         }
@@ -168,6 +213,20 @@ impl PyTransport {
         }
     }
 }
+#[pyclass]
+#[derive(Clone, Default, Debug, PartialEq)]
+pub struct PyTesTask {
+    inner: TesTask,
+}
+#[pyclass(name = "ListTasksParams", module = "ga4gh")]
+struct PyListTasksParams {
+    _inner: ListTasksParams,
+}
+
+pub struct PyTesListTasksResponse {
+    _inner: TesListTasksResponse,
+}
+
 
 // The Python module initialization
 #[pymodule]
@@ -175,5 +234,6 @@ fn ga4gh(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyConfiguration>()?;
     m.add_class::<PyServiceInfo>()?;
     m.add_class::<PyTransport>()?;
+    m.add_class::<PyTES>()?;
     Ok(())
 }
