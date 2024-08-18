@@ -1,7 +1,5 @@
 use ::ga4gh_sdk::clients::serviceinfo::ServiceInfo;
-use ga4gh_sdk::clients::tes::model::ListTasksParams;
-use ga4gh_sdk::clients::tes::models::TesTask;
-use ga4gh_sdk::clients::tes::{Task, TES};
+use ga4gh_sdk::clients::tes::Task;
 use ::ga4gh_sdk::utils::configuration::Configuration;
 use ::ga4gh_sdk::utils::transport::Transport;
 use pyo3::prelude::*;
@@ -64,6 +62,11 @@ impl PyConfiguration {
         self.inner.set_base_path(Url::parse(&base_path).unwrap());
         Ok(())
     }
+
+    pub fn get_base_path(&mut self) -> String {
+        self.inner.base_path.to_string()
+    }
+    
 }
 
 // Expose the ServiceInfo struct to Python
