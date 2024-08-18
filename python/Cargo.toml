@@ -1,0 +1,12 @@
+[package]
+name = "ga4gh-sdk-python"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+license-file.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
