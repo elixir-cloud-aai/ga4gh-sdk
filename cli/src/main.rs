@@ -37,7 +37,7 @@ use url::Url;
 /// Or:
 ///
 /// ```sh
-/// ga4gh-cli tes create './tests/sample.tes'
+/// ga4gh-cli tes create ./tests/sample.tes
 /// ```
 ///
 /// To run the `list` command:
