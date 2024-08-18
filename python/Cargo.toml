@@ -1,5 +1,5 @@
 [package]
-name = "ga4gh-sdk-python"
+name = "python"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -8,5 +8,12 @@ license-file.workspace = true
 repository.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "python"
+crate-type = ["cdylib"]
 
 [dependencies]
+pyo3 = "0.22.0"
+serde_json = "1.0.125"
+tokio = "1.39.3"
+url = "2.5.2"
