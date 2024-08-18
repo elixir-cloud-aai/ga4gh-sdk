@@ -1,3 +1,7 @@
+[build-system]
+requires = ["maturin~=1.0"]
+build-backend = "maturin"
+
 [package]
 name = "python"
 version.workspace = true
@@ -13,7 +17,14 @@ name = "python"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.22.0"
+ga4gh-lib = { path = "../lib" }
+pyo3 = { version = "0.21", features = ["extension-module", "experimental-async"]  }
 serde_json = "1.0.125"
 tokio = "1.39.3"
 url = "2.5.2"
+
+[package.metadata.maturin]
+bindings = "pyo3"
+
+[tool.maturin]
+features = ["pyo3/generate-import-lib"] # needed for Windows aarch64
