@@ -7,3 +7,8 @@ openapitools.json
 *.log
 funnel-work-dir/
 funnel/
+
+# Virtual environments
+.venv/
+env/
+venv/
