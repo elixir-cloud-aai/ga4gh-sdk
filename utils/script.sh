@@ -12,7 +12,7 @@ API_NAME="$2"
 DESTINATION_DIR="$3"
 
 # Define constants
-SED_RULE="s/^use\s\+crate::models\s*;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::$API_NAME::models;/"
+SED_RULE="s/^use\s\+crate::models\s*;/#![allow(unused_imports)]\n#![allow(clippy::empty_docs)]\nuse crate::clients::$API_NAME::models;/"
 TEMP_OUTPUT_DIR=$(mktemp -d)  # Define the temporary output directory for the OpenAPI generator
 
 # Exit immediately if a command exits with a non-zero status.
@@ -24,7 +24,7 @@ generate_openapi_models() {
     
     mkdir -p ~/bin/openapitools
     curl https://raw.githubusercontent.com/OpenAPITools/openapi-generator/master/bin/utils/openapi-generator-cli.sh > ~/bin/openapitools/openapi-generator-cli
-    chmod u+x ~/bin/openapitools/openapi-generator
+    chmod u+x ~/bin/openapitools/openapi-generator-cli
     export PATH=$PATH:~/bin/openapitools/
 
     openapi-generator-cli version

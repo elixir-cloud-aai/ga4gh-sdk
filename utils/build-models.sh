@@ -2,8 +2,23 @@
 
 # Define the list of OpenAPI specifications and their corresponding API names and destination directories
 declare -A SPECS
-SPECS["serviceinfo"]="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml lib/src/serviceinfo/"
-SPECS["tes"]="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml lib/src/tes/"
+
+# *Developer note*: Add entries to the SPECS associative array as shown in the examples below.
+# Each entry should map an API name to a URL and a destination directory.
+#
+# Example:
+SPECS["serviceinfo"]="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml lib/src/clients/serviceinfo/"
+SPECS["tes"]="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml lib/src/clients/tes/"
+#
+# To add a new entry, follow this format:
+# SPECS["<api_name>"]="<url> <destination_directory>"
+#
+# Replace <api_name> with the name of the API, <url> with the URL to the OpenAPI specification,
+# and <destination_directory> with the path to the directory where the models should be generated.
+#
+# Example of adding a new entry:
+# SPECS["newapi"]="https://example.com/path/to/newapi.yaml lib/src/clients/newapi/"
+
 
 # Directory of the build script
 BUILD_SCRIPT="./utils/script.sh"
