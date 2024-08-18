@@ -43,7 +43,12 @@ use url::Url;
 /// To run the `list` command:
 ///
 /// ```sh
-/// ga4gh-cli tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
+/// ga4gh-cli tes list 'name_prefix:None, state:None, tag_key:None, tag_value:None, page_size:None, page_token:None, view:FULL'
+/// ```
+/// OR
+/// Parameters with None values can be avoided, like:
+/// ```sh
+/// ga4gh-cli tes list 'view:FULL'
 /// ```
 ///
 /// ASSUME, cqgk5lj93m0311u6p530 is the id of a task created before
@@ -150,75 +155,75 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 };
             }
             if let Some(("list", sub)) = sub.subcommand() {
-                let mut config = Configuration::default();
-                let params = sub.value_of("params").unwrap().to_string();
+            let mut config = Configuration::default();
+            let params = sub.value_of("params").unwrap_or("").to_string();
 
-                // Split the params string into key-value pairs and collect into a HashMap for easier access
-                let params_map: HashMap<String, String> = params
-                    .split(',')
-                    .filter_map(|s| {
-                        let mut parts = s.trim().splitn(2, ':');
-                        Some((parts.next()?.to_string(), parts.next()?.to_string()))
-                    })
-                    .collect();
-                println!("parameters are: {:?}", params_map);
+            // Split the params string into key-value pairs and collect into a HashMap for easier access
+            let params_map: HashMap<String, String> = params
+                .split(',')
+                .filter_map(|s| {
+                    let mut parts = s.trim().splitn(2, ':');
+                    Some((parts.next()?.to_string(), parts.next()?.to_string()))
+                })
+                .collect();
+            println!("parameters are: {:?}", params_map);
 
-                // Now, construct ListTasksParams from the parsed values
-                let parameters = ListTasksParams {
-                    name_prefix: params_map.get("name_prefix").and_then(|s| {
-                        if s == "None" {
-                            None
-                        } else {
-                            Some(s.to_string())
-                        }
-                    }),
-                    state: params_map.get("state").and_then(|s| {
-                        if s == "None" {
-                            None
-                        } else {
-                            Some(serde_json::from_str(s).expect("Invalid state"))
-                        }
-                    }),
-                    tag_key: None,   // Example does not cover parsing Vec<String>
-                    tag_value: None, // Example does not cover parsing Vec<String>
-                    page_size: params_map.get("page_size").and_then(|s| {
-                        if s == "None" {
-                            None
-                        } else {
-                            Some(s.parse().expect("Invalid page_size"))
-                        }
-                    }),
-                    page_token: params_map.get("page_token").and_then(|s| {
-                        if s == "None" {
-                            None
-                        } else {
-                            Some(s.to_string())
-                        }
-                    }),
-                    view: params_map.get("view").and_then(|s| {
-                        if s == "None" {
-                            None
-                        } else {
-                            Some(s.to_string())
-                        }
-                    }),
-                };
-                println!("parameters are: {:?}", parameters);
-                // let mut config = load_configuration();
-                let funnel_url = ensure_funnel_running().await;
-                let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
-                config.set_base_path(funnel_url);
-                match TES::new(&config).await {
-                    Ok(tes) => {
-                        let task = tes.list_tasks(Some(parameters)).await;
-                        println!("{:?}", task);
+            // Now, construct ListTasksParams from the parsed values
+            let parameters = ListTasksParams {
+                name_prefix: params_map.get("name_prefix").and_then(|s| {
+                    if s == "None" {
+                        None
+                    } else {
+                        Some(s.to_string())
                     }
-                    Err(e) => {
-                        println!("Error creating TES instance: {:?}", e);
-                        return Err(e);
+                }),
+                state: params_map.get("state").and_then(|s| {
+                    if s == "None" {
+                        None
+                    } else {
+                        Some(serde_json::from_str(s).expect("Invalid state"))
                     }
-                };
-            }
+                }),
+                tag_key: None,   // Example does not cover parsing Vec<String>
+                tag_value: None, // Example does not cover parsing Vec<String>
+                page_size: params_map.get("page_size").and_then(|s| {
+                    if s == "None" {
+                        None
+                    } else {
+                        Some(s.parse().expect("Invalid page_size"))
+                    }
+                }),
+                page_token: params_map.get("page_token").and_then(|s| {
+                    if s == "None" {
+                        None
+                    } else {
+                        Some(s.to_string())
+                    }
+                }),
+                view: params_map.get("view").and_then(|s| {
+                    if s == "None" {
+                        None
+                    } else {
+                        Some(s.to_string())
+                    }
+                }),
+            };
+            println!("parameters are: {:?}", parameters);
+            // let mut config = load_configuration();
+            let funnel_url = ensure_funnel_running().await;
+            let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
+            config.set_base_path(funnel_url);
+            match TES::new(&config).await {
+                Ok(tes) => {
+                    let task = tes.list_tasks(Some(parameters)).await;
+                    println!("{:?}", task);
+                }
+                Err(e) => {
+                    println!("Error creating TES instance: {:?}", e);
+                    return Err(e);
+                }
+            };
+        }
             if let Some(("get", sub)) = sub.subcommand() {
                 let mut config = Configuration::default();
                 let id = sub.value_of("id").unwrap();
