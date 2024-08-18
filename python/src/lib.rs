@@ -1,8 +1,50 @@
 use ::ga4gh_sdk::clients::serviceinfo::ServiceInfo;
+use ga4gh_sdk::clients::tes::model::ListTasksParams;
+use ga4gh_sdk::clients::tes::models::TesTask;
+use ga4gh_sdk::clients::tes::{Task, TES};
 use ::ga4gh_sdk::utils::configuration::Configuration;
 use ::ga4gh_sdk::utils::transport::Transport;
 use pyo3::prelude::*;
+use tokio::runtime::Runtime;
 use url::Url;
+
+/// Expose the Task struct to Python
+#[pyclass(name = "Task", module = "ga4gh")]
+struct PyTask {
+    inner: Task,
+}
+
+#[pymethods]
+impl PyTask {
+    #[new]
+    pub fn new(id: String, transport: &PyTransport) -> PyResult<Self> {
+        Ok(PyTask {
+            inner: Task::new(id, transport.inner.clone()),
+        })
+    }
+
+    pub fn status(&self) -> PyResult<String> {
+        let rt = Runtime::new().unwrap();
+        match rt.block_on(self.inner.status()) {
+            Ok(state) => Ok(format!("{:?}", state)),
+            Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "Failed to get task status: {}",
+                e
+            ))),
+        }
+    }
+
+    pub fn cancel(&self) -> PyResult<String> {
+        let rt = Runtime::new().unwrap();
+        match rt.block_on(self.inner.cancel()) {
+            Ok(response) => Ok(response.to_string()),
+            Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "Failed to cancel task: {}",
+                e
+            ))),
+        }
+    }
+}
 
 // Expose the Configuration struct to Python
 #[pyclass(name = "Configuration", module = "ga4gh")]
