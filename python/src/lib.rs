@@ -1,6 +1,6 @@
 use ::ga4gh_sdk::clients::serviceinfo::ServiceInfo;
 use ga4gh_sdk::clients::tes::model::ListTasksParams;
-use ga4gh_sdk::clients::tes::models::{TesListTasksResponse, TesTask};
+use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 use ga4gh_sdk::clients::tes::{Task, TES};
 use ::ga4gh_sdk::utils::configuration::Configuration;
 use ::ga4gh_sdk::utils::transport::Transport;
@@ -213,11 +213,13 @@ impl PyTransport {
         }
     }
 }
-#[pyclass]
-#[derive(Clone, Default, Debug, PartialEq)]
-pub struct PyTesTask {
-    inner: TesTask,
+
+
+#[pyclass(name = "PyTesTask", module = "ga4gh")]
+struct PyTesTask {
+    inner: ga4gh_sdk::clients::tes::models::TesTask,
 }
+
 #[pyclass(name = "ListTasksParams", module = "ga4gh")]
 struct PyListTasksParams {
     _inner: ListTasksParams,
@@ -235,5 +237,6 @@ fn ga4gh(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyServiceInfo>()?;
     m.add_class::<PyTransport>()?;
     m.add_class::<PyTES>()?;
+    m.add_class::<PyTesTask>()?;
     Ok(())
 }

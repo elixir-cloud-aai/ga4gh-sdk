@@ -127,7 +127,7 @@ pub fn urlencode<T: AsRef<str>>(s: T) -> String {
     ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Task {
     /// The unique ID of the task.
     pub id: String,

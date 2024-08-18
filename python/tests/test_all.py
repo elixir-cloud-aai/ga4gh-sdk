@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch
-from ga4gh import Configuration, Transport, ServiceInfo, TES
+from ga4gh import Configuration, Transport, ServiceInfo, TES, TesTask
+
 
 @pytest.fixture
 def config():
@@ -83,6 +84,36 @@ def test_configuration():
     
     # Verify the new base path
     assert config.get_base_path() == new_base_path
+
+# @patch('ga4gh.TES.create')
+# def test_tes_create(mock_tes_create):
+#     config = Configuration("http://localhost:8000")
+#     tes= TES(config)
+#     print(tes)
+        
+#     # Define the dictionary with the task details
+#     task_dict = {
+#         "name": "Hello world",
+#         "inputs": [{
+#             "url": "s3://funnel-bucket/hello.txt",
+#             "path": "/inputs/hello.txt"
+#         }],
+#         "outputs": [{
+#             "url": "s3://funnel-bucket/output.txt",
+#             "path": "/outputs/stdout"
+#         }],
+#         "executors": [{
+#             "image": "alpine",
+#             "command": ["cat", "/inputs/hello.txt"],
+#             "stdout": "/outputs/stdout"
+#         }]
+#     }
+        
+#     # Create a TesTask instance from the dictionary
+#     tes_task = TesTask.from_dict(task_dict)
+
+#     # Now you can use the tes_task object
+#     print(tes_task)
 
 if __name__ == "__main__":
     pytest.main()
