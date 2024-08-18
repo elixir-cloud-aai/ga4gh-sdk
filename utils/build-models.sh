@@ -7,8 +7,8 @@ declare -A SPECS
 # Each entry should map an API name to a URL and a destination directory.
 #
 # Example:
-SPECS["serviceinfo"]="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml lib/src/clients/serviceinfo/"
-SPECS["tes"]="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml lib/src/clients/tes/"
+# SPECS["serviceinfo"]="https://raw.githubusercontent.com/ga4gh-discovery/ga4gh-service-info/develop/service-info.yaml lib/src/clients/serviceinfo/"
+# SPECS["tes"]="https://raw.githubusercontent.com/ga4gh/task-execution-schemas/develop/openapi/task_execution_service.openapi.yaml lib/src/clients/tes/"
 #
 # To add a new entry, follow this format:
 # SPECS["<api_name>"]="<url> <destination_directory>"
