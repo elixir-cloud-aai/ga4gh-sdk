@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Usage:
+# -----
+# To run the script, use the following command:
+# ./script.sh <OPENAPI_SPEC_PATH> <API_NAME> <DESTINATION_DIR>
+#
+# Example:
+# ./script.sh https://example.com/path/to/openapi.yaml myapi lib/src/clients/myapi/
+#
+# Parameters:
+# - OPENAPI_SPEC_PATH: The URL or file path to the OpenAPI specification.
+# - API_NAME: The name of the API.
+# - DESTINATION_DIR: The directory where the generated models should be copied.
+#
+# The script will generate Rust models from the OpenAPI specification and place them in the specified destination directory.
+
 # Ensure the correct number of arguments
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <OPENAPI_SPEC_PATH> <API_NAME> <DESTINATION_DIR>"
