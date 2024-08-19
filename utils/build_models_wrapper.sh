@@ -21,7 +21,7 @@ declare -A SPECS
 
 
 # Directory of the build script
-BUILD_SCRIPT="./utils/script.sh"
+BUILD_SCRIPT="./utils/build_models.sh"
 
 # Iterate over the specifications and call the build script for each
 for API_NAME in "${!SPECS[@]}"; do
