@@ -280,23 +280,9 @@ fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dy
 }
 
 fn load_configuration() -> Configuration {
-    let config_file_path = dirs::home_dir().map(|path| path.join(".config/config.json"));
-    if let Some(path) = config_file_path {
-        if path.exists() {
-            if let Some(path_str) = path.to_str() {
-                match read_configuration_from_file(path_str) {
-                    Ok(config) => {config},
-                    Err(_) => {
-                        Configuration::default()
-                    },
-                }
-            } else {
-                Configuration::default()
-            }
-            
-        } else {
-            Configuration::default()
-        }
+    let config_file_path = dirs::home_dir()?.join(".config/config.json");
+    if config_file_path.exists() {
+        read_configuration_from_file(config_file_path.to_str()?).unwrap_or_default()
     } else {
         Configuration::default()
     }
