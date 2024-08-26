@@ -1,0 +1,16 @@
+{
+  "name": "Hello world",
+  "inputs": [{
+    "url": "s3://funnel-bucket/hello.txt",
+    "path": "/inputs/hello.txt"
+  }],
+  "outputs": [{
+    "url": "s3://funnel-bucket/output.txt",
+    "path": "/outputs/stdout"
+  }],
+  "executors": [{
+      "image": "alpine",
+      "command": ["cat", "/inputs/hello.txt"],
+      "stdout": "/outputs/stdout"
+  }]
+}
