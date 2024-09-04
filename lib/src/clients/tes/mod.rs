@@ -87,7 +87,6 @@
 /// # }
 /// ```
 pub mod models;
-pub mod model;
 use crate::utils::configuration::Configuration;
 use crate::clients::serviceinfo::models::Service;
 use crate::clients::serviceinfo::ServiceInfo;
@@ -95,7 +94,7 @@ use crate::clients::tes::models::TesListTasksResponse;
 use crate::clients::tes::models::TesState;
 use crate::clients::tes::models::TesTask;
 use crate::utils::transport::Transport;
-use crate::clients::tes::model::ListTasksParams;
+use crate::clients::tes::models::ListTasksParams;
 use serde_json;
 use serde_json::from_str;
 use serde_json::json;
