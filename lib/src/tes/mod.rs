@@ -7,7 +7,7 @@ use crate::tes::models::TesListTasksResponse;
 use crate::tes::models::TesState;
 use crate::tes::models::TesTask;
 use crate::transport::Transport;
-use crate::tes::model::ListTasksParams;
+use crate::tes::models::ListTasksParams;
 use serde_json;
 use serde_json::from_str;
 use serde_json::json;

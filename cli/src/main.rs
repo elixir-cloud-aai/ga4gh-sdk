@@ -257,14 +257,26 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Example `config.json` file:
+/// Loads the configuration from a JSON file.
+///
+/// # Example `config.json`
 ///
 /// ```json
 /// {
 ///   "base_path": "http://localhost:8000",
-///   "user_agent": "username"
+///   "user_agent": "Some(User)",
+///   "basic_auth": {
+///         "username": "your_username",
+///         "password": "your_password"
+///     },
+///   "oauth_access_token": "your_oauth_access_token"
 /// }
 /// ```
+///
+/// # Errors
+///
+/// This function will return an error if the configuration file is missing or malformed.
+
 
 fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dyn Error>> {
     let mut file = File::open(file_path)?;
