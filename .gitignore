@@ -1,8 +1,9 @@
 target/
 debug/
+
 Cargo.lock
+
 openapitools.json
 *.log
 funnel-work-dir/
 funnel/
-lib/src/*/models

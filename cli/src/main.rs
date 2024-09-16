@@ -1,15 +1,15 @@
 use clap::{arg, Command};
-use ga4gh_sdk::configuration::Configuration;
-use ga4gh_sdk::tes::model::ListTasksParams;
-use ga4gh_sdk::transport::Transport;
+use ga4gh_sdk::clients::tes::models::ListTasksParams;
 use std::collections::HashMap;
 use std::error::Error;
-use ga4gh_sdk::tes::{Task, TES};
-use ga4gh_sdk::tes::models::TesTask;
-use ga4gh_sdk::test_utils::ensure_funnel_running;
 use std::fs;
 use std::path::Path;
-use ga4gh_sdk::configuration::BasicAuth;
+use ga4gh_sdk::clients::tes::models::TesTask;
+use ga4gh_sdk::clients::tes::{Task, TES};
+use ga4gh_sdk::utils::configuration::Configuration;
+use ga4gh_sdk::utils::test_utils::ensure_funnel_running;
+use ga4gh_sdk::utils::transport::Transport;
+use ga4gh_sdk::utils::configuration::BasicAuth;
 use std::fs::File;
 use serde_json::Value;
 use std::io::Read;
@@ -126,9 +126,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let testask: TesTask = serde_json::from_str(&task_json)
                     .map_err(|e| format!("Failed to parse JSON: {}", e))?;
                 let mut config = load_configuration();
-                if config.base_path == "localhost" {
+                if config.base_path.as_str() == "localhost" {
                     let funnel_url = ensure_funnel_running().await;
-                    config.set_base_path(&funnel_url);
+                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
+                    config.set_base_path(funnel_url);
                 }
                 match TES::new(&config).await {
                         Ok(tes) => {
@@ -166,9 +167,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 };
                 println!("parameters are: {:?}",parameters);
                 let mut config = load_configuration();
-                if config.base_path == "localhost" {
+                if config.base_path.as_str() == "localhost" {
                     let funnel_url = ensure_funnel_running().await;
-                    config.set_base_path(&funnel_url);
+                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
+                    config.set_base_path(funnel_url);
                 }
                 match TES::new(&config).await {
                     Ok(tes) => {
@@ -186,9 +188,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let view = sub.value_of("view").unwrap();
                 
                 let mut config = load_configuration();
-                if config.base_path == "localhost" {
+                if config.base_path.as_str() == "localhost" {
                     let funnel_url = ensure_funnel_running().await;
-                    config.set_base_path(&funnel_url);
+                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
+                    config.set_base_path(funnel_url);
                 }
 
                 match TES::new(&config).await {
@@ -206,9 +209,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let id = sub.value_of("id").unwrap().to_string();
                 
                 let mut config = load_configuration();   
-                if config.base_path == "localhost" {
+                if config.base_path.as_str() == "localhost" {
                     let funnel_url = ensure_funnel_running().await;
-                    config.set_base_path(&funnel_url);
+                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
+                    config.set_base_path(funnel_url);
                 }
                 let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
@@ -226,9 +230,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let id = sub.value_of("id").unwrap().to_string();
                 
                 let mut config = load_configuration();
-                if config.base_path == "localhost" {
+                if config.base_path.as_str() == "localhost" {
                     let funnel_url = ensure_funnel_running().await;
-                    config.set_base_path(&funnel_url);
+                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
+                    config.set_base_path(funnel_url);
                 }
                 let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
@@ -275,8 +280,11 @@ fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dy
             password: Some(auth["password"].as_str().unwrap_or_default().to_string()),
         });
     let oauth_access_token = json_value["oauth_access_token"].as_str().map(|s| s.to_string());
-
-    let config = Configuration::new(base_path, user_agent, basic_auth, oauth_access_token);
+    let base_path = url::Url::parse(&base_path).expect("Invalid URL");
+    let config = Configuration::new(base_path)
+        .with_user_agent(user_agent.expect("Invalid user agent"))
+        .with_basic_auth(basic_auth.expect("Invalid basic_auth"))
+        .with_oauth_access_token(oauth_access_token.expect("Invalid oauth access token"));
     Ok(config)
 }
 

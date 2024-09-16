@@ -1,4 +1,3 @@
 ignore = [
-    "lib/serviceinfo/models",
-    "lib/tes/models",
+    "lib/*/models",
 ]
