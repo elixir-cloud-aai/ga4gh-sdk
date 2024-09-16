@@ -48,12 +48,29 @@ use std::io::Read;
 /// ```sh
 /// cargo run -- tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
 /// ```
+/// OR
+/// Parameters with None values can be avoided, like:
+/// ```sh
+/// ga4gh-cli tes list 'view:FULL'
+/// ```
 /// 
-/// ASSUME, cqgk5lj93m0311u6p530 is the id of a task created before
+/// ASSUME, crjpvmb93m0bq6ssgqn0 is the id of a task created before
 /// To run the `get` command:
 ///
 /// ```sh
-/// cargo run -- tes get cqgk5lj93m0311u6p530 BASIC
+/// cargo run -- tes get crjpvmb93m0bq6ssgqn0 BASIC
+/// ```
+/// /// To run the `status` command:
+///
+/// ```sh
+/// ga4gh-cli tes status crjpvmb93m0bq6ssgqn0      
+/// ```
+///
+///
+/// To run the `cancel` command:
+///
+/// ```sh
+/// ga4gh-cli tes cancel crjpvmb93m0bq6ssgqn0      
 /// ```
 
 #[tokio::main]
