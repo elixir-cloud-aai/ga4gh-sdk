@@ -1,9 +1,57 @@
+/// This module provides Python bindings for the GA4GH SDK using PyO3.
+/// It exposes several key structs and their methods to Python, allowing for interaction with GA4GH services.
+///
+/// # Classes
+///
+/// - `Task`: Represents a task in the GA4GH TES service.
+/// - `TES`: Represents the GA4GH TES service.
+/// - `Configuration`: Represents the configuration for connecting to GA4GH services.
+/// - `ServiceInfo`: Provides information about the GA4GH service.
+/// - `Transport`: Handles HTTP transport for GA4GH services.
+/// - `PyTesTask`: Represents a TES task.
+/// - `ListTasksParams`: Represents parameters for listing TES tasks.
+///
+/// # Example
+///
+/// ```python
+/// from ga4gh import Configuration, TES, Task, ServiceInfo, Transport
+///
+/// # Create a configuration
+/// config = Configuration("http://example.com")
+///
+/// # Create a TES instance
+/// tes = TES(config)
+///
+/// # Create a task
+/// task = Task("task_id", transport)
+///
+/// # Get task status
+/// status = task.status()
+///
+/// # Cancel a task
+/// task.cancel()
+///
+/// # Get service info
+/// service_info = ServiceInfo(config)
+/// info = service_info.get_service_info()
+///
+/// # Perform HTTP GET request
+/// transport = Transport(config)
+/// response = transport.get("/endpoint", None)
+/// ```
+///
+/// # Notes
+///
+/// - The `Runtime::new().unwrap()` calls are used to create a Tokio runtime for asynchronous operations.
+/// - Error handling is done using `PyResult` and `pyo3::exceptions::PyRuntimeError`.
+/// - The `#[pymodule]` attribute is used to define the Python module initialization function.
 use ::ga4gh_sdk::clients::serviceinfo::ServiceInfo;
 use ga4gh_sdk::clients::tes::model::ListTasksParams;
 use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 use ga4gh_sdk::clients::tes::{Task, TES};
 use ::ga4gh_sdk::utils::configuration::Configuration;
 use ::ga4gh_sdk::utils::transport::Transport;
+use ::ga4gh_sdk::clients::tes::models::TesTask;
 use pyo3::prelude::*;
 use tokio::runtime::Runtime;
 use url::Url;
@@ -217,7 +265,7 @@ impl PyTransport {
 
 #[pyclass(name = "PyTesTask", module = "ga4gh")]
 struct PyTesTask {
-    inner: ga4gh_sdk::clients::tes::models::TesTask,
+    inner: TesTask,
 }
 
 #[pyclass(name = "ListTasksParams", module = "ga4gh")]
