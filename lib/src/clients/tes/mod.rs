@@ -76,7 +76,7 @@
 /// ```rust
 /// use ga4gh_sdk::clients::tes::TES;
 /// use ga4gh_sdk::utils::configuration::Configuration;
-/// use ga4gh_sdk::clients::tes::model::ListTasksParams;
+/// use ga4gh_sdk::clients::tes::models::ListTasksParams;
 ///
 /// # async fn test_tes_list_tasks() -> Result<(), Box<dyn std::error::Error>> {
 /// let config = Configuration::new(url::Url::parse("http://example.com")?);
