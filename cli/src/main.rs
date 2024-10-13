@@ -92,9 +92,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 )
                 .subcommand(
                     Command::new("list")
-                        .about("list all tasks")
-                        .arg(arg!(<params> "The parameters to get back"))
-                        .arg_required_else_help(true),
+                    .about("list all tasks")
+                    .arg(arg!(-n --name_prefix [NAME_PREFIX] "The name prefix to filter tasks"))
+                    .arg(arg!(-s --state [STATE] "The state to filter tasks"))
+                    .arg(arg!(-k --tag_key [TAG_KEY] "The tag key to filter tasks"))
+                    .arg(arg!(-v --tag_value [TAG_VALUE] "The tag value to filter tasks"))
+                    .arg(arg!(-p --page_size [PAGE_SIZE] "The page size for pagination"))
+                    .arg(arg!(-t --page_token [PAGE_TOKEN] "The page token for pagination"))
+                    .arg(arg!(-w --view [VIEW] "The view for the tasks"))
                 )
                 .subcommand(
                     Command::new("get")
