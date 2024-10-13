@@ -19,7 +19,7 @@ use std::io::Read;
 /// To run the `create` command:
 ///
 /// ```sh
-/// cargo run -- tes create '{
+///  ga4gh-cli -- tes create '{
 ///     "name": "Hello world",
 ///     "inputs": [{
 ///         "url": "s3://funnel-bucket/hello.txt",
@@ -40,13 +40,13 @@ use std::io::Read;
 /// Or:
 ///
 /// ```sh
-/// cargo run -- tes create './tests/sample.tes'
+/// ga4gh-cli -- tes create './tests/sample.tes'
 /// ```
 ///
 /// To run the `list` command:
 ///
 /// ```sh
-/// cargo run -- tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
+/// ga4gh-cli -- tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
 /// ```
 /// OR
 /// Parameters with None values can be avoided, like:
@@ -142,12 +142,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 };
                 let testask: TesTask = serde_json::from_str(&task_json)
                     .map_err(|e| format!("Failed to parse JSON: {}", e))?;
-                let mut config = load_configuration();
-                if config.base_path.as_str() == "localhost" {
-                    let funnel_url = ensure_funnel_running().await;
-                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
-                    config.set_base_path(funnel_url);
-                }
+                let config = load_cli_configuration().await;
                 match TES::new(&config).await {
                         Ok(tes) => {
                             let task = tes.create(testask).await;
@@ -183,12 +178,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     view: params_map.get("view").and_then(|s| if s == "None" { None } else { Some(s.to_string()) }),
                 };
                 println!("parameters are: {:?}",parameters);
-                let mut config = load_configuration();
-                if config.base_path.as_str() == "localhost" {
-                    let funnel_url = ensure_funnel_running().await;
-                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
-                    config.set_base_path(funnel_url);
-                }
+                let config = load_cli_configuration().await;
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.list_tasks(Some(parameters)).await;
@@ -203,14 +193,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             if let Some(("get", sub)) = sub.subcommand() {    
                 let id = sub.value_of("id").unwrap();
                 let view = sub.value_of("view").unwrap();
-                
-                let mut config = load_configuration();
-                if config.base_path.as_str() == "localhost" {
-                    let funnel_url = ensure_funnel_running().await;
-                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
-                    config.set_base_path(funnel_url);
-                }
-
+                let config = load_cli_configuration().await;
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.get(view, id).await;
@@ -245,13 +228,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
             if let Some(("cancel", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
-                
-                let mut config = load_configuration();
-                if config.base_path.as_str() == "localhost" {
-                    let funnel_url = ensure_funnel_running().await;
-                    let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
-                    config.set_base_path(funnel_url);
-                }
+                let config = load_cli_configuration().await;
                 let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
                 match task.cancel().await {
@@ -338,4 +315,14 @@ fn load_configuration() -> Configuration {
     } else {
         Configuration::default()
     }
+}
+
+async fn load_cli_configuration()-> Configuration{
+    let mut config = load_configuration();
+    if config.base_path.as_str() == "localhost" {
+        let funnel_url = ensure_funnel_running().await;
+        let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
+        config.set_base_path(funnel_url);
+    }
+    config
 }
