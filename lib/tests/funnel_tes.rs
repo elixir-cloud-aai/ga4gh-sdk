@@ -4,7 +4,6 @@ mod tests {
     use ga4gh_sdk::clients::tes::models::ListTasksParams;
     use ga4gh_sdk::clients::tes::models::TesState;
     use ga4gh_sdk::clients::tes::models::TesTask;
-    use ga4gh_sdk::clients::tes::models::ListTasksParams;
     use ga4gh_sdk::clients::tes::Task;
     use ga4gh_sdk::clients::tes::TES;
     use ga4gh_sdk::utils::configuration::Configuration;

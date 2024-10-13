@@ -1,6 +1,5 @@
 use clap::{arg, Command};
 use ga4gh_sdk::clients::tes::models::ListTasksParams;
-use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -19,7 +18,7 @@ use std::io::Read;
 /// To run the `create` command:
 ///
 /// ```sh
-///  ga4gh-cli -- tes create '{
+///  ga4gh-cli tes create '{
 ///     "name": "Hello world",
 ///     "inputs": [{
 ///         "url": "s3://funnel-bucket/hello.txt",
@@ -40,25 +39,25 @@ use std::io::Read;
 /// Or:
 ///
 /// ```sh
-/// ga4gh-cli -- tes create './tests/sample.tes'
+/// ga4gh-cli tes create './tests/sample.tes'
 /// ```
 ///
 /// To run the `list` command:
 ///
 /// ```sh
-/// ga4gh-cli -- tes list 'name_prefix: None, state: None, tag_key: None, tag_value: None, page_size: None, page_token: None, view: FULL'
+/// ga4gh-cli tes list --name_prefix None --state None --tag_key None --tag_value None --page_size None --page_token None --view FULL'
 /// ```
 /// OR
 /// Parameters with None values can be avoided, like:
 /// ```sh
-/// ga4gh-cli tes list 'view:FULL'
+/// ga4gh-cli tes list --view FULL
 /// ```
 /// 
 /// ASSUME, crjpvmb93m0bq6ssgqn0 is the id of a task created before
 /// To run the `get` command:
 ///
 /// ```sh
-/// cargo run -- tes get crjpvmb93m0bq6ssgqn0 BASIC
+/// cargo run tes get crjpvmb93m0bq6ssgqn0 BASIC
 /// ```
 /// /// To run the `status` command:
 ///
@@ -95,10 +94,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 )
 
                 .subcommand(
-                    Command::new("list")
-                        .about("list all tasks")
-                        .arg(arg!(<params> "The parameters to get back"))
-                        .arg_required_else_help(true),
+                Command::new("list")
+                    .about("list all tasks")
+                    .arg(arg!(-n --name_prefix [NAME_PREFIX] "The name prefix to filter tasks"))
+                    .arg(arg!(-s --state [STATE] "The state to filter tasks"))
+                    .arg(arg!(-k --tag_key [TAG_KEY] "The tag key to filter tasks"))
+                    .arg(arg!(-v --tag_value [TAG_VALUE] "The tag value to filter tasks"))
+                    .arg(arg!(-p --page_size [PAGE_SIZE] "The page size for pagination"))
+                    .arg(arg!(-t --page_token [PAGE_TOKEN] "The page token for pagination"))
+                    .arg(arg!(-w --view [VIEW] "The view for the tasks"))
                 )
                 .subcommand(
                     Command::new("get")
@@ -154,35 +158,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         }
                     };
                 }
-            if let Some(("list", sub)) = sub.subcommand() {          
-                let params = sub.value_of("params").unwrap().to_string();
-                                
-                // Split the params string into key-value pairs and collect into a HashMap for easier access
-                let params_map: HashMap<String, String> = params
-                    .split(',')
-                    .filter_map(|s| {
-                        let mut parts = s.trim().splitn(2, ':');
-                        Some((parts.next()?.to_string(), parts.next()?.to_string()))
-                    })
-                    .collect();
-                println!("parameters are: {:?}",params_map);
+            if let Some(("list", sub)) = sub.subcommand() {
+                let name_prefix = sub.value_of("name_prefix").map(|s| s.to_string());
+                let state = sub.value_of("state").map(|s| serde_json::from_str(s).expect("Invalid state"));
+                let _tag_key = sub.value_of("tag_key").map(|s| s.to_string());
+                let _tag_value = sub.value_of("tag_value").map(|s| s.to_string());
+                let page_size = sub.value_of("page_size").map(|s| s.parse().expect("Invalid page_size"));
+                let page_token = sub.value_of("page_token").map(|s| s.to_string());
+                let view = sub.value_of("view").map(|s| s.to_string());
 
-                // Now, construct ListTasksParams from the parsed values
                 let parameters = ListTasksParams {
-                    name_prefix: params_map.get("name_prefix").and_then(|s| if s == "None" { None } else { Some(s.to_string()) }),
-                    state: params_map.get("state").and_then(|s| if s == "None" { None } else { Some(serde_json::from_str(s).expect("Invalid state")) }),
+                    name_prefix,
+                    state,
                     tag_key: None, // Example does not cover parsing Vec<String>
                     tag_value: None, // Example does not cover parsing Vec<String>
-                    page_size: params_map.get("page_size").and_then(|s| if s == "None" { None } else { Some(s.parse().expect("Invalid page_size")) }),
-                    page_token: params_map.get("page_token").and_then(|s| if s == "None" { None } else { Some(s.to_string()) }),
-                    view: params_map.get("view").and_then(|s| if s == "None" { None } else { Some(s.to_string()) }),
+                    page_size,
+                    page_token,
+                    view,
                 };
-                println!("parameters are: {:?}",parameters);
+
+                println!("parameters are: {:?}", parameters);
                 let config = load_cli_configuration().await;
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.list_tasks(Some(parameters)).await;
-                        println!("{:?}",task);
+                        println!("{:?}", task);
                     },
                     Err(e) => {
                         eprintln!("Error creating TES instance: {:?}", e);
