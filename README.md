@@ -13,10 +13,7 @@ TBA
 
 ## Building
 
-First, clone the repository, and then run the following command to automatically generate models using OpenAPI specifications:
-```
-bash ./build-models.sh
-```
+**Developer note:** If you want to update any of the [OpenAPI](https://www.openapis.org/) specifications supported by this tool or extend it to support any other OpenAPI-backed services (e.g., not currently supported GA4GH API-based services or your own services), please refer to our [documentation for auto-generating OpenAPI models](docs/autogenerate_OAI_models.md).
 
 To build the project:
 ```
