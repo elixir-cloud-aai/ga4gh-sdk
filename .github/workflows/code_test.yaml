@@ -55,7 +55,7 @@ jobs:
         run: cargo install cargo-tarpaulin
 
       - name: Run unit tests with coverage
-        run: cargo tarpaulin --tests --out Xml
+        run: cargo tarpaulin --tests --doc --out Xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -87,7 +87,7 @@ jobs:
         run: cargo install cargo-tarpaulin
 
       - name: Run unit tests with coverage
-        run: cargo tarpaulin --tests --out Xml
+        run: cargo tarpaulin --tests --doc --out Xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
