@@ -24,8 +24,6 @@ jobs:
 
       - name: Run fmt checks
         run: |
-          cargo fmt -- ./lib/src/serviceinfo/models/*.rs
-          cargo fmt -- ./lib/src/tes/models/*.rs
           cargo fmt -- --check
 
   lint:
