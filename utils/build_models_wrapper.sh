@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Define the list of OpenAPI specifications and their corresponding API names and destination directories
-declare -A SPECS
-
 # *Developer note*: Add entries to the SPECS associative array as shown in the examples below.
 # Each entry should map an API name to a URL and a destination directory.
 #
