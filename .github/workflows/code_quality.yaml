@@ -11,7 +11,7 @@ on:
 
 jobs:
   format:
-    name: Format
+    name: Running formating checks
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -28,7 +28,7 @@ jobs:
           cargo fmt -- --check
 
   lint:
-    name: Lint
+    name: Running lint checks
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -45,7 +45,7 @@ jobs:
           cargo clippy -- -D warnings	
 
   spell-check:
-    name: Spell check
+    name: Running spell check
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
