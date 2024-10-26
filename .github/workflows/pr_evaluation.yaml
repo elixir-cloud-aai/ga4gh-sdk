@@ -25,14 +25,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up environment
-        uses: ./.github/actions/setup/poetry
-        with:
-          os: ${{ job.os }}
-          python-version: '{{ cookiecutter.python_version }}'
-          poetry-install-options: "--only=misc --no-root"
-          poetry-export-options: "--only=misc"
-
       - name: Check all the pre-commit hooks passed
         run: pre-commit run --all-files
 
