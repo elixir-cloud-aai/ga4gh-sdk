@@ -35,7 +35,7 @@ For more information, and for looking at alternate ways to install OpenAPI Gener
     ```sh
     git clone https://github.com/elixir-cloud-aai/ga4gh-sdk.git
     ```
-2. Update the specs of the APIs you want to change in [`/utils/build-models.sh`](command:_github.copilot.openRelativePath?%5B%7B%22scheme%22%3A%22file%22%2C%22authority%22%3A%22%22%2C%22path%22%3A%22%2Fhome%2Faarav%2Fdev%2Fga4gh-sdk%2Futils%2Fbuild_models_wrapper.sh%22%2C%22query%22%3A%22%22%2C%22fragment%22%3A%22%22%7D%5D "/home/aarav/dev/ga4gh-sdk/utils/build_models_wrapper.sh"):
+2. Update the specs of the APIs you want to change in `./utils/build-models.sh`:
     ```sh
     declare -A SPECS
     SPECS["serviceinfo"]="new serviceinfo specs"
