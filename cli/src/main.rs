@@ -9,6 +9,9 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 use url::Url;
+use log::{debug, error};
+
+use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 
 /// # Examples
 ///
@@ -70,8 +73,47 @@ use url::Url;
 /// ga4gh-cli tes cancel cqgk5lj93m0311u6p530      
 /// ```
 
+use ga4gh_sdk::clients::tes::models::TesState;
+
+fn tes_state_to_str(state: &Option<TesState>) -> &str {
+    match state {
+        Some(TesState::Unknown) => "Unknown",
+        Some(TesState::Queued) => "Queued",
+        Some(TesState::Initializing) => "Initializing",
+        Some(TesState::Running) => "Running",
+        Some(TesState::Paused) => "Paused",
+        Some(TesState::Complete) => "Complete",
+        Some(TesState::ExecutorError) => "Executor Error",
+        Some(TesState::SystemError) => "System Error",
+        Some(TesState::Canceled) => "Canceled",
+        Some(TesState::Canceling) => "Canceling",
+        Some(TesState::Preempted) => "Preempted",
+        None => "None",
+    }
+}
+
+fn format_task(task: &TesTask) -> String {
+    format!(
+        "{:<25} {:<15}\n",
+        task.id.as_deref().unwrap_or("None"),
+        tes_state_to_str(&task.state)
+    )
+}
+
+fn format_tasks_response(response: &TesListTasksResponse) -> String {
+    let mut table = String::new();
+    let headers = format!("{:<25} {:<15}\n", "TASK ID", "State");
+    table.push_str(&headers);
+    for task in &response.tasks {
+        table.push_str(&format_task(task));
+    }
+    table
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    env_logger::init();
+
     let cmd = Command::new("cli")
         .bin_name("cli")
         .version("0.1.0")
@@ -131,12 +173,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 // let url = sub.value_of("url").unwrap();
                 let path = Path::new(task_file);
                 if !path.exists() {
-                    eprintln!("File does not exist: {:?}", path);
+                    error!("File does not exist: {:?}", path);
                 }
                 let task_json = match fs::read_to_string(path) {
                     Ok(contents) => contents,
                     Err(e) => {
-                        eprintln!("Failed to read file: {}", e);
+                        error!("Failed to read file: {}", e);
                         task_file.to_string()
                     }
                 };
@@ -153,13 +195,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         println!("{:?}", task);
                     }
                     Err(e) => {
-                        println!("Error creating TES instance: {:?}", e);
+                        error!("Error creating TES instance: {:?}", e);
                         return Err(e);
                     }
                 };
             }
             if let Some(("list", sub)) = sub.subcommand() {
-                
+                debug!("list subcommand");
                 let name_prefix = sub.value_of("name_prefix").map(|s| s.to_string());
                 let state = sub.value_of("state").map(|s| serde_json::from_str(s).expect("Invalid state"));
                 let _tag_key = sub.value_of("tag_key").map(|s| s.to_string());
@@ -178,7 +220,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     view,
                 };
 
-                println!("parameters are: {:?}", parameters);
+                debug!("parameters are: {:?}", parameters);
                 let mut config = Configuration::default();
                 
                 let funnel_url = ensure_funnel_running().await;
@@ -187,11 +229,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 
                 match TES::new(&config).await {
                     Ok(tes) => {
-                        let task = tes.list_tasks(Some(parameters)).await;
-                        println!("{:?}", task);
+                        match tes.list_tasks(Some(parameters)).await {
+                            Ok(task_response) => {
+                                println!("{}", format_tasks_response(&task_response)); 
+                            },
+                            Err(e) => {
+                                eprintln!("Error listing tasks: {}", e);
+                            }
+                        }
                     },
                     Err(e) => {
-                        eprintln!("Error creating TES instance: {:?}", e);
+                        error!("Error creating TES instance: {:?}", e);
                         return Err(e);
                     }
                 };
@@ -211,7 +259,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         println!("{:?}", task);
                     }
                     Err(e) => {
-                        println!("Error creating TES instance: {:?}", e);
+                        error!("Error creating TES instance: {:?}", e);
                         return Err(e);
                     }
                 };
@@ -225,13 +273,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
                 config.set_base_path(funnel_url);
                 let transport = Transport::new(&config);
-                let task = Task::new(id, transport);
+                let task = Task::new(id.clone(), transport);
                 match task.status().await {
                     Ok(status) => {
-                        println!("The status is: {:?}", status);
+                        println!("TASKID: {}", id.clone());
+                        println!("STATUS: {:?}", status);
                     }
                     Err(e) => {
-                        println!("Error creating Task instance: {:?}", e);
+                        error!("Error creating Task instance: {:?}", e);
                         return Err(e);
                     }
                 };
@@ -251,7 +300,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         println!("The new value is: {:?}", output);
                     }
                     Err(e) => {
-                        println!("Error creating Task instance: {:?}", e);
+                        error!("Error creating Task instance: {:?}", e);
                         return Err(e);
                     }
                 };
@@ -259,7 +308,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         _ => {
-            eprintln!("Error: Unrecognized command or option");
+            error!("Error: Unrecognized command or option");
         }
     }
     Ok(())
