@@ -2,16 +2,10 @@ use ga4gh_sdk::clients::tes::models::ListTasksParams;
 use ga4gh_sdk::clients::tes::models::TesTask;
 use ga4gh_sdk::clients::tes::{Task, TES};
 use ga4gh_sdk::utils::configuration::Configuration;
-use ga4gh_sdk::utils::test_utils::ensure_funnel_running;
 use ga4gh_sdk::utils::transport::Transport;
-use ga4gh_sdk::utils::configuration::BasicAuth;
+use ga4gh_sdk::clients::ServiceType;
 use clap::{arg, Command};
-use std::fs;
-use std::fs::File;
-use std::io::Read;
-use serde_json::Value;
 use std::path::Path;
-use url::Url;
 use std::error::Error;
 use log::{debug, error};
 
@@ -171,6 +165,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     match matches.subcommand() {
         Some(("tes", sub)) => {
+            let config = Configuration::from_file(ServiceType::TES).await?;
+
             if let Some(("create", sub)) = sub.subcommand() {
                 let task_file = sub.value_of("TASK_FILE")
                     .ok_or_else(|| anyhow::anyhow!("TASK_FILE argument is required"))?;
@@ -179,7 +175,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     eprintln!("File does not exist: {:?}", path);
                     std::process::exit(1);
                 }
-                let task_json = match fs::read_to_string(path) {
+                let task_json = match std::fs::read_to_string(path) {
                     Ok(contents) => contents,
                     Err(e) => {
                         eprintln!("Failed to read file: {}", e);
@@ -188,18 +184,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 };
                 let testask: TesTask = serde_json::from_str(&task_json)
                     .map_err(|e| format!("Failed to parse JSON: {}", e))?;
-                let config = load_cli_configuration().await;
+
                 match TES::new(&config).await {
-                        Ok(tes) => {
-                            let task = tes.create(testask).await;
-                            println!("{:?}", task);
-                        },
-                        Err(e) => {
-                            error!("Error creating TES instance: {:?}", e);
-                            return Err(e);
-                        }
-                    };
-                }
+                    Ok(tes) => {
+                        let task = tes.create(testask).await;
+                        println!("{:?}", task);
+                    },
+                    Err(e) => {
+                        error!("Error creating TES instance: {:?}", e);
+                        return Err(e);
+                    }
+                };
+            }
+
             if let Some(("list", sub)) = sub.subcommand() {
                 let name_prefix = sub.value_of("name_prefix").map(|s| s.to_string());
                 let state = sub.value_of("state").map(|s| serde_json::from_str(s).expect("Invalid state"));
@@ -218,9 +215,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     page_token,
                     view,
                 };
-
                 debug!("parameters are: {:?}", parameters);
-                let config = load_cli_configuration().await;
+
                 match TES::new(&config).await {
                     Ok(tes) => {
                         match tes.list_tasks(Some(parameters)).await {
@@ -242,7 +238,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             if let Some(("get", sub)) = sub.subcommand() {    
                 let id = sub.value_of("id").unwrap();
                 let view = sub.value_of("view").unwrap();
-                let config = load_cli_configuration().await;
+
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.get(view, id).await;
@@ -257,10 +253,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             if let Some(("status", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
-                
-                let config = load_cli_configuration().await;
                 let transport = Transport::new(&config);
-                let task = Task::new(id, transport);
+                let task = Task::new(id.clone(), transport);
                 match task.status().await {
                     Ok(status) => {
                         println!("TASKID: {}", id.clone());
@@ -272,9 +266,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                 };
             }
+
             if let Some(("cancel", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
-                let config = load_cli_configuration().await;
                 let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
                 match task.cancel().await {
@@ -295,62 +289,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
-}
-
-/// Loads the configuration from a JSON file.
-///
-/// # Example `config.json`
-///
-/// ```json
-/// {
-///   "base_path": "http://localhost:8000",
-///   "user_agent": "Some(User)",
-///   "basic_auth": {
-///         "username": "your_username",
-///         "password": "your_password"
-///     },
-///   "oauth_access_token": "your_oauth_access_token"
-/// }
-/// ```
-///
-/// # Errors
-///
-/// This function will return an error if the configuration file is missing or malformed.
-
-fn read_configuration_from_file(file_path: &str) -> Result<Configuration, Box<dyn Error>> {
-    let mut file = File::open(file_path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    
-    let json_value: Value = serde_json::from_str(&contents)?;
-
-    let base_path = json_value["base_path"].as_str().unwrap_or_default().to_string();
-    let user_agent = json_value["user_agent"].as_str().map(|s| s.to_string());
-    let basic_auth = json_value["basic_auth"].as_object().map(|auth| BasicAuth {
-            username: auth["username"].as_str().unwrap_or_default().to_string(),
-            password: Some(auth["password"].as_str().unwrap_or_default().to_string()),
-        });
-    let oauth_access_token = json_value["oauth_access_token"].as_str().map(|s| s.to_string());
-
-    let config = Configuration::new(base_path, user_agent, basic_auth, oauth_access_token);
-    Ok(config)
-}
-
-fn load_configuration() -> Configuration {
-    let config_file_path = dirs::home_dir()?.join(".config/config.json");
-    if config_file_path.exists() {
-        read_configuration_from_file(config_file_path.to_str()?).unwrap_or_default()
-    } else {
-        Configuration::default()
-    }
-}
-
-async fn load_cli_configuration()-> Configuration{
-    let mut config = load_configuration();
-    if config.base_path.as_str() == "localhost" {
-        let funnel_url = ensure_funnel_running().await;
-        let funnel_url = url::Url::parse(&funnel_url).expect("Invalid URL");
-        config.set_base_path(funnel_url);
-    }
-    config
 }
