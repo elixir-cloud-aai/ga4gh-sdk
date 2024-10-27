@@ -9,66 +9,6 @@ use std::path::Path;
 use std::error::Error;
 use log::{debug, error};
 
-/// # Examples
-///
-/// To run the `create` command:
-///
-/// ```sh
-/// ga4gh-cli tes create '{
-///     "name": "Hello world",
-///     "inputs": [{
-///         "url": "s3://funnel-bucket/hello.txt",
-///         "path": "/inputs/hello.txt"
-///     }],
-///     "outputs": [{
-///         "url": "s3://funnel-bucket/output.txt",
-///         "path": "/outputs/stdout"
-///     }],
-///     "executors": [{
-///         "image": "alpine",
-///         "command": ["cat", "/inputs/hello.txt"],
-///         "stdout": "/outputs/stdout"
-///     }]
-/// }'
-/// ```
-///
-/// Or:
-///
-/// ```sh
-/// ga4gh-cli tes create ./tests/sample.tes
-/// ```
-///
-/// To run the `list` command:
-///
-/// ```sh
-/// ga4gh-cli tes list --name_prefix None --state None --tag_key None --tag_value None --page_size None --page_token None --view FULL'
-/// ```
-/// OR
-/// Parameters with None values can be avoided, like:
-/// ```sh
-/// ga4gh-cli tes list --view FULL
-/// ```
-///
-/// ASSUME, cqgk5lj93m0311u6p530 is the id of a task created before
-/// To run the `get` command:
-///
-/// ```sh
-/// ga4gh-cli tes get cqgk5lj93m0311u6p530 BASIC
-/// ```
-///
-/// To run the `status` command:
-///
-/// ```sh
-/// ga4gh-cli tes status cqgk5lj93m0311u6p530      
-/// ```
-///
-///
-/// To run the `cancel` command:
-///
-/// ```sh
-/// ga4gh-cli tes cancel cqgk5lj93m0311u6p530      
-/// ```
-
 use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 use ga4gh_sdk::clients::tes::models::TesState;
 
