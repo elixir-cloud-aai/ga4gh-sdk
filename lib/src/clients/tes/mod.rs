@@ -100,6 +100,7 @@ use serde_json::from_str;
 use serde_json::json;
 use serde::Serialize;
 use serde_json::Value;
+use log::{debug, error};
 
 /// Serializes any serializable item into a JSON `Value`.
 ///
@@ -327,14 +328,14 @@ impl TES {
         } else {
             self.transport.get("/tasks", None).await
         };
-
+        
         match response {
             Ok(resp_str) => {
                 let task: TesListTasksResponse = from_str(&resp_str)?;
                 Ok(task)
             }
             Err(e) => {
-                eprintln!("HTTP request failed: {:?}", e);
+                error!("HTTP request failed: {:?}", e);
                 Err(Box::new(std::io::Error::new(
                     std::io::ErrorKind::Other,
                     format!("HTTP request failed: {:?}", e),
