@@ -1,51 +1,15 @@
-use ga4gh_sdk::clients::tes::models::ListTasksParams;
-use ga4gh_sdk::clients::tes::models::TesTask;
 use ga4gh_sdk::clients::tes::{Task, TES};
 use ga4gh_sdk::utils::configuration::Configuration;
 use ga4gh_sdk::utils::transport::Transport;
 use ga4gh_sdk::clients::ServiceType;
+use ga4gh_sdk::clients::tes::models::ListTasksParams;
+use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
+use ga4gh_sdk::clients::tes::models::TesState;
+use ga4gh_sdk::clients::tes::models::TesTask;
 use clap::{arg, Command};
 use std::path::Path;
 use std::error::Error;
 use log::{debug, error};
-
-use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
-use ga4gh_sdk::clients::tes::models::TesState;
-
-fn tes_state_to_str(state: &Option<TesState>) -> &str {
-    match state {
-        Some(TesState::Unknown) => "Unknown",
-        Some(TesState::Queued) => "Queued",
-        Some(TesState::Initializing) => "Initializing",
-        Some(TesState::Running) => "Running",
-        Some(TesState::Paused) => "Paused",
-        Some(TesState::Complete) => "Complete",
-        Some(TesState::ExecutorError) => "Executor Error",
-        Some(TesState::SystemError) => "System Error",
-        Some(TesState::Canceled) => "Canceled",
-        Some(TesState::Canceling) => "Canceling",
-        Some(TesState::Preempted) => "Preempted",
-        None => "None",
-    }
-}
-
-fn format_task(task: &TesTask) -> String {
-    format!(
-        "{:<25} {:<15}\n",
-        task.id.as_deref().unwrap_or("None"),
-        tes_state_to_str(&task.state)
-    )
-}
-
-fn format_tasks_response(response: &TesListTasksResponse) -> String {
-    let mut table = String::new();
-    let headers = format!("{:<25} {:<15}\n", "TASK ID", "State");
-    table.push_str(&headers);
-    for task in &response.tasks {
-        table.push_str(&format_task(task));
-    }
-    table
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -229,4 +193,41 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+// Helper functions
+
+fn tes_state_to_str(state: &Option<TesState>) -> &str {
+    match state {
+        Some(TesState::Unknown) => "Unknown",
+        Some(TesState::Queued) => "Queued",
+        Some(TesState::Initializing) => "Initializing",
+        Some(TesState::Running) => "Running",
+        Some(TesState::Paused) => "Paused",
+        Some(TesState::Complete) => "Complete",
+        Some(TesState::ExecutorError) => "Executor Error",
+        Some(TesState::SystemError) => "System Error",
+        Some(TesState::Canceled) => "Canceled",
+        Some(TesState::Canceling) => "Canceling",
+        Some(TesState::Preempted) => "Preempted",
+        None => "None",
+    }
+}
+
+fn format_task(task: &TesTask) -> String {
+    format!(
+        "{:<25} {:<15}\n",
+        task.id.as_deref().unwrap_or("None"),
+        tes_state_to_str(&task.state)
+    )
+}
+
+fn format_tasks_response(response: &TesListTasksResponse) -> String {
+    let mut table = String::new();
+    let headers = format!("{:<25} {:<15}\n", "TASK ID", "State");
+    table.push_str(&headers);
+    for task in &response.tasks {
+        table.push_str(&format_task(task));
+    }
+    table
 }
