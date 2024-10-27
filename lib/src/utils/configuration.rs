@@ -126,22 +126,7 @@ impl Configuration {
     ///
     /// # Arguments
     ///
-    /// * `service` - The path to the JSON file containing the configuration.
-    ///
-    /// # Example `./ga4gh-cli/config.json`
-    ///
-    /// ```json
-    /// {
-    ///    "TES": {
-    ///        "base_path": "http://localhost:8000",
-    ///        "basic_auth": {
-    ///            "username": "your_username",
-    ///            "password": "your_password"
-    ///        },
-    ///        "oauth_access_token": "your_oauth_access_token"
-    ///    }
-    /// }
-    /// ```
+    /// * `service_type` - The type of service to load the configuration for.
     ///
     /// # Errors
     ///
