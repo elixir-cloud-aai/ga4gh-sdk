@@ -76,7 +76,7 @@
 /// ```rust
 /// use ga4gh_sdk::clients::tes::TES;
 /// use ga4gh_sdk::utils::configuration::Configuration;
-/// use ga4gh_sdk::clients::tes::model::ListTasksParams;
+/// use ga4gh_sdk::clients::tes::models::ListTasksParams;
 ///
 /// # async fn test_tes_list_tasks() -> Result<(), Box<dyn std::error::Error>> {
 /// let config = Configuration::new(url::Url::parse("http://example.com")?);
@@ -87,7 +87,6 @@
 /// # }
 /// ```
 pub mod models;
-pub mod model;
 use crate::utils::configuration::Configuration;
 use crate::clients::serviceinfo::models::Service;
 use crate::clients::serviceinfo::ServiceInfo;
@@ -95,12 +94,13 @@ use crate::clients::tes::models::TesListTasksResponse;
 use crate::clients::tes::models::TesState;
 use crate::clients::tes::models::TesTask;
 use crate::utils::transport::Transport;
-use crate::clients::tes::model::ListTasksParams;
+use crate::clients::tes::models::ListTasksParams;
 use serde_json;
 use serde_json::from_str;
 use serde_json::json;
 use serde::Serialize;
 use serde_json::Value;
+use log::{debug, error};
 
 /// Serializes any serializable item into a JSON `Value`.
 ///
@@ -328,14 +328,14 @@ impl TES {
         } else {
             self.transport.get("/tasks", None).await
         };
-
+        
         match response {
             Ok(resp_str) => {
                 let task: TesListTasksResponse = from_str(&resp_str)?;
                 Ok(task)
             }
             Err(e) => {
-                eprintln!("HTTP request failed: {:?}", e);
+                error!("HTTP request failed: {:?}", e);
                 Err(Box::new(std::io::Error::new(
                     std::io::ErrorKind::Other,
                     format!("HTTP request failed: {:?}", e),

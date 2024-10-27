@@ -1,8 +1,9 @@
 [workspace]
 members = [
     "lib",
+    "cli",
     "python"
-    ]
+]
 
 [workspace.package]
 version = "0.1.0"
