@@ -7,4 +7,4 @@ openapitools.json
 *.log
 funnel-work-dir/
 funnel/
-/.venv
+.venv
