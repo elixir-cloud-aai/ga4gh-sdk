@@ -7,3 +7,7 @@ openapitools.json
 *.log
 funnel-work-dir/
 funnel/
+
+package.json
+package-lock.json
+node_modules/
