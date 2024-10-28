@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import patch
-from ga4gh import Configuration, Transport, ServiceInfo, TES
-
+from GA4GH import Configuration, Transport, ServiceInfo, TES
 
 @pytest.fixture
 def config():
