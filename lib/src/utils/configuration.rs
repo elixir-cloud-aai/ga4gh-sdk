@@ -132,7 +132,7 @@ impl Configuration {
     ///
     /// This function will return an error if the configuration file is missing or malformed.
 
-    pub async fn from_file(service_type: ServiceType)-> Result<Self, Box<dyn std::error::Error>> {
+    pub fn from_file(service_type: ServiceType)-> Result<Self, Box<dyn std::error::Error>> {
         let config_file_path = dirs::home_dir().ok_or("Home directory not found")?.join(".ga4gh-cli/config.json");
         if config_file_path.exists() {
             let contents = std::fs::read_to_string(config_file_path)?;

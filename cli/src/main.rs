@@ -69,7 +69,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     match matches.subcommand() {
         Some(("tes", sub)) => {
-            let config = Configuration::from_file(ServiceType::TES).await?;
+            let config = Configuration::from_file(ServiceType::TES)?;
 
             if let Some(("create", sub)) = sub.subcommand() {
                 let task_file = sub.value_of("TASK_FILE")
@@ -173,7 +173,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             if let Some(("cancel", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
-
                 let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
                 match task.cancel().await {

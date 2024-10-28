@@ -7,10 +7,12 @@ openapitools.json
 *.log
 funnel-work-dir/
 funnel/
-.venv
 
+# Virtual environments
+.venv/
+env/
+venv/
 
 package.json
 package-lock.json
 node_modules/
-
