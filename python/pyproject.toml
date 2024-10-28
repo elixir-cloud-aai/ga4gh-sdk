@@ -3,8 +3,8 @@ requires = ["maturin>=1.7,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "python"
-requires-python = ">=3.8"
+name = "GA4GH-SDK"
+requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
@@ -19,4 +19,4 @@ tests = [
 
 [tool.maturin]
 bindings = "pyo3"
-module-name = "ga4gh"
+module-name = "GA4GH"
