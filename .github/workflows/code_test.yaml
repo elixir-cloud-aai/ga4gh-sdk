@@ -1,0 +1,101 @@
+---
+name: Code test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  common-steps:
+    name: common setup steps
+    runs-on: ubuntu-latest
+    outputs:
+      rust-toolchain: ${{ steps.set-toolchain.outputs.version }}
+    steps:
+      - name: Stop existing Funnel container if running
+        run: |
+          docker stop $(docker ps -q --filter ancestor=ohsucompbio/funnel:latest) || true
+        shell: bash
+
+      - name: Start Funnel
+        run: |
+          docker run -d -p 8000:8000 ohsucompbio/funnel:latest \
+          server run --Server.HostName=localhost --Server.HTTPPort=8000
+        shell: bash
+
+      - name: Wait for Funnel to be healthy
+        run: |
+          until curl --fail http://localhost:8000/v1/tasks; do
+            echo "Waiting for Funnel to be healthy..."
+            sleep 3
+          done
+        shell: bash
+
+  integration-tests:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    needs: common-steps
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Run integration tests
+        run: cargo test --tests
+
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Run unit tests with coverage
+        run: cargo tarpaulin --tests --doc --out Xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./tarpaulin-report.xml
+          flags: test_integration
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
+
+  unit-tests:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    needs: common-steps
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Run unit tests
+        run: cargo test --lib
+
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Run unit tests with coverage
+        run: cargo tarpaulin --tests --doc --out Xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./tarpaulin-report.xml
+          flags: test_unit
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
+...
