@@ -1,0 +1,32 @@
+[build-system]
+requires = ["maturin=1.7.4"]
+build-backend = "maturin"
+
+[package]
+name = "ga4gh"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+readme.workspace = true
+license-file.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "ga4gh"
+crate-type = ["cdylib"]
+
+[dependencies]
+ga4gh-lib = { path = "../lib" }
+pyo3 = { version = "0.22.5", features = ["extension-module", "experimental-async"]  }
+serde = "1.0.213"
+serde_json = "1.0.132"
+tokio = "1.41.0"
+url = "2.5.2"
+
+[package.metadata.maturin]
+name = "GA4GH"
+bindings = "pyo3"
+
+[tool.maturin]
+features = ["pyo3/generate-import-lib"] # needed for Windows aarch64

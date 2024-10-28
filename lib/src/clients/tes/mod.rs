@@ -127,7 +127,7 @@ pub fn urlencode<T: AsRef<str>>(s: T) -> String {
     ::url::form_urlencoded::byte_serialize(s.as_ref().as_bytes()).collect()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Task {
     /// The unique ID of the task.
     pub id: String,
@@ -198,9 +198,9 @@ impl Task {
 #[derive(Debug)]
 pub struct TES {
     #[allow(dead_code)]
-    config: Configuration, // not used yet
-    service: Result<Service, Box<dyn std::error::Error>>,
-    transport: Transport,
+    pub config: Configuration, // not used yet
+    pub service: Result<Service, Box<dyn std::error::Error>>,
+    pub transport: Transport,
 }
 
 impl TES {
