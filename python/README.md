@@ -1,34 +1,56 @@
-## GA4GH-SDK bindings to python
+## GA4GH-SDK Python Bindings
 
-https://docs.rs/pyo3/latest/pyo3
+This repository provides Python bindings for the GA4GH-SDK using [PyO3](https://docs.rs/pyo3/latest/pyo3).
 
-Install maturin:
+## Prerequisites
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install maturin
-pip install pytest
-```
+- Python 3.12
+- [Maturin](https://github.com/PyO3/maturin)
+- [PyTest](https://docs.pytest.org/en/stable/)
 
-## Develop
+## Installation
 
-Start in dev:
+1. **Create a virtual environment:**
+
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
+
+2. **Install dependencies:**
+
+    ```bash
+    pip install maturin pytest
+    ```
+
+## Development
+
+To start development, use the following command to build and install the package in development mode:
 
 ```bash
 maturin develop
 ```
 
-Test the python lib:
+## Build
+
+Build the Python library wheel:
+
+```bash
+maturin build
+```
+
+## Running Tests
+
+To run the lib tests, use:
 
 ```bash
 pytest
 ```
 
-## Build
+## Documentation
 
-Build the wheel:
+For more information on PyO3, visit the [PyO3 documentation](https://docs.rs/pyo3/latest/pyo3).
 
-```bash
-maturin build
-```
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
