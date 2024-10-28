@@ -15,7 +15,7 @@ use log::{debug, error};
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
 
-    let cmd = Command::new("cli")
+    let cmd = Command::new("ga4gh-cli")
         .bin_name("cli")
         .version("0.1.0")
         .about("CLI to manage tasks")
@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 )
                 .subcommand(
                     Command::new("list")
-                    .about("list all tasks")
+                        .about("list all tasks")
                         .arg(arg!(-n --name_prefix [NAME_PREFIX] "The name prefix to filter tasks"))
                         .arg(arg!(-s --state [STATE] "The state to filter tasks"))
                         .arg(arg!(-k --tag_key [TAG_KEY] "The tag key to filter tasks"))
@@ -76,13 +76,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     .ok_or_else(|| anyhow::anyhow!("TASK_FILE argument is required"))?;
                 let path = Path::new(task_file);
                 if !path.exists() {
-                    eprintln!("File does not exist: {:?}", path);
+                    error!("File does not exist: {:?}", path);
                     std::process::exit(1);
                 }
                 let task_json = match std::fs::read_to_string(path) {
                     Ok(contents) => contents,
                     Err(e) => {
-                        eprintln!("Failed to read file: {}", e);
+                        error!("Failed to read file: {}", e);
                         task_file.to_string()
                     },
                 };
@@ -128,7 +128,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 println!("{}", format_tasks_response(&task_response)); 
                             },
                             Err(e) => {
-                                eprintln!("Error listing tasks: {}", e);
+                                error!("Error listing tasks: {}", e);
                             }
                         }
                     },
@@ -188,7 +188,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         
         _ => {
-            eprintln!("Error: Unrecognized command or option");
+            error!("Error: Unrecognized command or option");
             std::process::exit(1);
         }
     }
