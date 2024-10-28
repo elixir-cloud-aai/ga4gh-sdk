@@ -37,7 +37,7 @@ pub struct TesTask {
     pub resources: Option<Box<models::TesResources>>,
     /// An array of executors to be run. Each of the executors will run one at a time sequentially. Each executor is a different command that will be run, and each can utilize a different docker image. But each of the executors will see the same mapped inputs and volumes that are declared in the parent CreateTask message.  Execution stops on the first error.
     #[serde(rename = "executors")]
-    pub executors: Vec<models::TesExecutor>,
+    pub executors: Option<Vec<models::TesExecutor>>,
     /// Volumes are directories which may be used to share data between Executors. Volumes are initialized as empty directories by the system when the task starts and are mounted at the same path in each Executor.  For example, given a volume defined at `/vol/A`, executor 1 may write a file to `/vol/A/exec1.out.txt`, then executor 2 may read from that file.  (Essentially, this translates to a `docker run -v` flag where the container path is the same for each executor).
     #[serde(rename = "volumes", skip_serializing_if = "Option::is_none")]
     pub volumes: Option<Vec<String>>,
@@ -63,7 +63,7 @@ impl TesTask {
             inputs: None,
             outputs: None,
             resources: None,
-            executors,
+            executors: None,
             volumes: None,
             tags: None,
             logs: None,
