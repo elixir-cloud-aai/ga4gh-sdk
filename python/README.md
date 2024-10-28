@@ -20,7 +20,8 @@ This repository provides Python bindings for the GA4GH-SDK using [PyO3](https://
 2. **Install dependencies:**
 
     ```bash
-    pip install maturin pytest
+    pip install maturin[patchelf]
+    pip install pytest 
     ```
 
 ## Development
