@@ -8,3 +8,9 @@ openapitools.json
 funnel-work-dir/
 funnel/
 .venv
+
+
+package.json
+package-lock.json
+node_modules/
+
