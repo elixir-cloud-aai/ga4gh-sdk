@@ -17,7 +17,6 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | b
 
 ENV PATH=$NVM_DIR/versions/node/v22.11.0/bin:$PATH
 
-WORKDIR /app
+RUN npm install -g @openapitools/openapi-generator-cli
 
-# Note: Not working...
-# RUN npm install -g @openapitools/openapi-generator-cli
+WORKDIR /app

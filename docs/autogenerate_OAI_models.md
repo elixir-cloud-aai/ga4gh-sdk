@@ -29,12 +29,8 @@ If you don't want to install the OpenAPI Generator CLI and Java Development Kit 
 ```sh
 # Go to the root directory of the repository
 cd ..
-docker compose -f compose.autogen-models.yml up -d --build
-docker compose -f compose.autogen-models.yml exec app bash
-
-# Inside the container
-npm install -g @openapitools/openapi-generator-cli
-bash ./utils/build_models.sh <OPENAPI_SPEC_PATH> <API_NAME> <DESTINATION_DIR>
+docker build -t ga4gh-sdk-autogen-models -f Dockerfile-autogen-models .
+docker run -it --rm -v $(pwd):/app -w /app ga4gh-sdk-autogen-models bash <OPENAPI_SPEC_PATH> <API_NAME> <DESTINATION_DIR>
 ```
 
 ## Usage
