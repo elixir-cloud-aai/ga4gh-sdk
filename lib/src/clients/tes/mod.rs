@@ -100,7 +100,7 @@ use serde_json::from_str;
 use serde_json::json;
 use serde::Serialize;
 use serde_json::Value;
-use log::{debug, error};
+use log::{error};
 
 /// Serializes any serializable item into a JSON `Value`.
 ///
@@ -165,7 +165,7 @@ impl Task {
             }
             Err(e) => {
                 let err_msg = format!("HTTP request failed: {}", e);
-                eprintln!("{}", err_msg);
+                error!("{}", err_msg);
                 Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, err_msg)))
             }
         }
@@ -212,7 +212,7 @@ impl TES {
     /// # Returns
     /// - A new `TES` instance, or an error if the initialization fails.
     pub async fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
-        let transport = Transport::new(config);
+        let transport = Transport::new(config)?;
         let service_info = ServiceInfo::new(config)?;
 
         let resp = service_info.get().await;
