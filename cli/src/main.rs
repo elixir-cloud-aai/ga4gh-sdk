@@ -7,16 +7,15 @@ use ga4gh_sdk::clients::tes::models::ListTasksParams;
 use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 use ga4gh_sdk::clients::tes::models::TesState;
 use ga4gh_sdk::clients::tes::models::TesTask;
-use clap::{arg, Command};
+use clap::{arg, Arg, Command};
 use std::path::Path;
 use std::error::Error;
 use log::{debug, error, info};
 use ga4gh_sdk::utils::expand_path_with_home_dir;
+use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
-
     let cmd = Command::new("GA4GH-CLI")
         .bin_name("ga4gh-cli")
         .version("0.1.0")
@@ -26,6 +25,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 Contributors are welcome: https://github.com/elixir-cloud-aai/ga4gh-sdk")
         .subcommand_required(true)
         .arg_required_else_help(true)
+        .arg(
+            Arg::new("verbose")
+                .long("verbose")
+                .takes_value(true)
+                .possible_values(&["info", "error", "debug"])
+                .default_value("info")
+                .help("Sets the level of verbosity"),
+        )
         .subcommand(
             Command::new("tes")
                 .about("TES subcommands")
@@ -105,6 +112,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         );
     
     let matches = cmd.clone().get_matches();
+
+    let log_level = matches.value_of("verbose").unwrap_or("info");
+    env::set_var("RUST_LOG", log_level);
+    env_logger::init();
 
     let service_config_path = expand_path_with_home_dir(".ga4gh-cli/config.json");
     let extensions_config_path = expand_path_with_home_dir(".ga4gh-cli/extensions.json");
