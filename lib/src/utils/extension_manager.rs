@@ -174,12 +174,6 @@ impl ExtensionManager {
             }
         }
         fs::write(&self.config_path, serde_json::to_string_pretty(&extensions_json)?)?;
-
-        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh-cli/extensions/{}/", name).as_str());
-        if fs::metadata(&extension_folder_path).is_ok() {
-            fs::remove_dir_all(&extension_folder_path)?;
-        }
-
         Ok(())
     }
 
@@ -195,12 +189,6 @@ impl ExtensionManager {
             }
         }
         fs::write(&self.config_path, serde_json::to_string_pretty(&extensions_json)?)?;
-
-        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh-cli/extensions/{}/", name).as_str());
-        if fs::metadata(&extension_folder_path).is_ok() {
-            fs::remove_dir_all(&extension_folder_path)?;
-        }
-
         Ok(())
     }
 }
