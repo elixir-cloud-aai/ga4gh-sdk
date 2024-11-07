@@ -123,6 +123,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     match matches.subcommand() {
         Some(("tes", sub)) => {       
             let config = Configuration::from_file(Some(ServiceType::TES), &service_config_path, &extensions_config_path)?;
+            debug!("main Configuration: {:?}", config);
             let transport = Transport::new(&config)?;
                     
             if let Some(("create", sub)) = sub.subcommand() {
