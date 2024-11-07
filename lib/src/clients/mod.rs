@@ -1,5 +1,6 @@
 pub mod serviceinfo;
 pub mod tes;
+pub mod trs;
 pub mod wes;
 
 #[derive(Debug)]
