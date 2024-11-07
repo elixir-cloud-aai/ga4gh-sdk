@@ -9,6 +9,7 @@ use std::fs;
 use crate::utils::expand_path_with_home_dir;
 use std::io::Read;
 use serde_json::Value;
+use std::collections::HashMap;
 
 // #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 // pub struct InstalledExtensions {
@@ -52,7 +53,6 @@ impl ExtensionManager {
         };  
 
         for instaslled_extension in &mut installed_extensions.extensions {
-            debug!("Loading extension: {}", instaslled_extension.name);
             // let mut extension = InstalledExtension::from_file(extension_global_config.definition_path.as_str())?;
             if let Some(service_config) = &service_config {
                 instaslled_extension.load(service_config.get_extension_config(&instaslled_extension.name).clone());
@@ -92,7 +92,7 @@ impl ExtensionManager {
         self.extensions
             .iter()
             .filter(|e| e.enabled)
-            .flat_map(|e| e.methods.as_ref().unwrap().values().flatten())
+            .flat_map(|e| e.methods.values().flatten())
             .filter(|m| m.unified_name == unified_method_name)
             .collect::<Vec<_>>()
     }
@@ -133,7 +133,7 @@ impl ExtensionManager {
             enabled: false,
             loaded: false,
             library: None,
-            methods: None,
+            methods: HashMap::new(),
         };
         debug!("Adding extension record: {:?}", new_extension_record);
         extensions_json.extensions.push(new_extension_record); // TODO: should the struct be updated?
