@@ -260,7 +260,7 @@ impl TES {
         })?;
         let response = self
             .transport
-            .post("/ga4gh/tes/v1/tasks", Some(json!(task)))
+            .post("/tasks", Some(json!(task)))
             .await;
         match response {
             Ok(response_body) => {
@@ -355,7 +355,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tes_create() {
-        let _m = mock("POST", "/ga4gh/tes/v1/tasks")
+        let _m = mock("POST", "/tasks")
             .with_status(200)
             .with_body(r#"{"id": "123"}"#)
             .create();
