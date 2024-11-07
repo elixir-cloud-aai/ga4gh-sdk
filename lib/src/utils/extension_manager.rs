@@ -1,7 +1,6 @@
 use crate::utils::extension::Extension;
 use crate::utils::extension::ExtensionMethod;
 use crate::utils::extension::InstalledExtension;
-// use crate::utils::configuration::Configuration;
 use crate::utils::configuration::ServiceExtensionsConfiguration;
 use log::{debug, info, warn, error};
 use std::error::Error;
@@ -10,11 +9,6 @@ use crate::utils::expand_path_with_home_dir;
 use std::io::Read;
 use serde_json::Value;
 use std::collections::HashMap;
-
-// #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-// pub struct InstalledExtensions {
-//     pub extensions: ,
-// }
 
 type InstalledExtensions = Vec<InstalledExtension>;
 
@@ -189,26 +183,3 @@ impl ExtensionManager {
         self.update_extension_status(name, false)
     }
 }
-
-
-        // // read extensions configuration
-        // let config_json = Configuration::get_configuration_from_file(".ga4gh-cli/extensions.json".to_string())?;
-        // for extension in config_json.get("extensions").and_then(|v| v.as_array()).unwrap_or(&Vec::new()) {
-        //     if let Some(file) = extension.get("name").and_then(|v| v.as_str()) {
-        //         if let Some(enabled) = extension.get("enabled").and_then(|v| v.as_bool()) {
-        //             if enabled {
-        //                 let extension_path = Configuration::get_config_path(".ga4gh-cli/extensions/".to_owned() + file)?;
-        //                 debug!("Loading extension definition file: {}", extension_path.as_path().to_str().unwrap_or_default());
-        //                 let mut extension = Extension::from_file(extension_path.as_path().to_str().unwrap_or_default())?;
-        //                 extension.enable();
-        //                 info!("Registering extension: {}", file);
-        //                 config.extensions_manager.register_extension(extension);
-        //             }
-        //         } else {
-        //             warn!("extensions.json file record is missing a 'name' field");
-        //         }
-        //     } else {
-        //         warn!("extensions.json file record is missing a 'name' field");
-        //     }
-        //     config.extensions_manager.load_extensions();
-        // }
