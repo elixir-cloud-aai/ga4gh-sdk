@@ -19,9 +19,9 @@ impl ServiceInfo {
     ///
     /// A `Result` containing the `ServiceInfo` instance or an error.
     pub fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
-        let transport = Transport::new(config);
+        let transport = Transport::new(config)?;
         let instance = ServiceInfo {
-            transport: transport.clone(),
+            transport: transport,
         };
         Ok(instance)
     }
@@ -32,21 +32,12 @@ impl ServiceInfo {
     ///
     /// A `Result` containing the service information or an error.
     pub async fn get(&self) -> Result<models::Service, Box<dyn std::error::Error>> {
-        let response = tokio::time::timeout(
-            std::time::Duration::from_secs(10),
-            self.transport.get("/service-info", None)
-        ).await?;
-        match response {
-            Ok(response_body) => match serde_json::from_str::<models::Service>(&response_body) {
-                Ok(service) => Ok(service),
-                Err(e) => {
-                    log::error!("Failed to deserialize response. Error: {}", e);
-                    Err(e.into())
-                }
-            },
+        let response = self.transport.get("/service-info", None).await?;
+        match serde_json::from_str::<models::Service>(&response) {
+            Ok(service) => Ok(service),
             Err(e) => {
-                log::error!("Error getting response: {}", e);
-                Err(e)
+                log::error!("Failed to deserialize response. Error: {}", e);
+                Err(e.into())
             }
         }
     }
