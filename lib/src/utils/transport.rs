@@ -34,16 +34,25 @@
 /// };
 /// ```
 use crate::utils::configuration::Configuration;
-use log::error;
-use reqwest::Client;
-use serde_json::Value;
+use log::{debug, error, info};
+use reqwest::ClientBuilder;
+use serde_json::{Value, json};
 use std::error::Error;
+use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
 
-// note: could implement custom certs handling, such as in-TEE generated ephemerial certs
 #[derive(Clone, Debug)]
 pub struct Transport {
     pub config: Configuration,
     pub client: reqwest::Client,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct TLSVerifierResponse {
+    message: Option<String>,
+    certificate: String,
+    #[serde(rename = "verification-result")]
+    verification_result: bool,
 }
 
 impl Transport {
@@ -57,11 +66,73 @@ impl Transport {
     /// # Returns
     ///
     /// A new `Transport` instance.
-    pub fn new(config: &Configuration) -> Self {
-        Transport {
-            config: config.clone(),
-            client: Client::new(),
+    pub fn new(config: &Configuration) -> Result<Self, Box<dyn Error>> {
+        let mut certificates = Vec::new();
+        let tls_methods = config.extensions_manager.lookup_extension_methods("tls-verifier");
+        for tls_method in tls_methods {
+            let service_host = config.base_path.host_str().unwrap();
+            let extension_config = config.extensions.as_ref().unwrap().get_extension_config(&tls_method.extension_name);
+
+            let tls_method_param = json!({
+                "service-host": service_host,
+                "extension-config": extension_config,
+            });
+            debug!("Calling TLS extension method: {}", tls_method.internal_name);
+
+            let response_json = unsafe { (tls_method.method)(tls_method_param) };
+            // Parse response and handle double-encoded JSON
+            let response: TLSVerifierResponse = serde_json::from_str(&response_json.as_str().unwrap_or_default())
+                .and_then(|json: Value| {
+                    if let Some(inner) = json.as_str() {
+                        serde_json::from_str(inner)
+                    } else {
+                        serde_json::from_value(json)
+                    }
+                })
+                .map_err(|e| {
+                    debug!("Error parsing TLS extension method response: {}", e);
+                    Box::new(e) as Box<dyn std::error::Error>
+                })?;
+            debug!("TLS extension method response: {:#?}", response);
+
+            const SECURITY_MODE_ENFORCE : &str = "enforce";
+            const SECURITY_MODE_PERMISSIVE : &str = "permissive";
+            const DEFAULT_SECURITY_MODE : &str = SECURITY_MODE_ENFORCE;
+
+            let security_mode = extension_config["security-mode"].as_str().unwrap_or(DEFAULT_SECURITY_MODE);
+            if security_mode != SECURITY_MODE_ENFORCE && security_mode != SECURITY_MODE_PERMISSIVE {
+                return Err(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid security mode")));
+            }
+            info!("security mode: {}", security_mode);
+
+            if security_mode == SECURITY_MODE_ENFORCE {
+                if response.verification_result == false {
+                    let message = match response.message {
+                        Some(message) => message,
+                        None => "TLS verification failed".to_string(),
+                    };
+                    debug!("TLS extension method error: {}", message);
+                    return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, message)));
+                }
+            }
+     
+            let base64_cert = response.certificate.as_str();
+            let pem = STANDARD.decode(base64_cert).map_err(|err| format!("Failed to decode aTLS certificate. Error: {}", err))?;
+            let certificate = reqwest::Certificate::from_pem(&pem).map_err(|err| format!("Failed to parse aTLS certificate. Error: {}", err))?;
+        
+            certificates.push(certificate);
         }
+
+        let mut client = ClientBuilder::new();
+        for certificate in certificates {
+            info!("Adding aTLS certificate as trusted to the HTTP client");
+            client = client.add_root_certificate(certificate).danger_accept_invalid_certs(true);
+        }
+
+        Ok(Transport {
+            config: config.clone(),
+            client: client.build()?.clone(),
+        })
     }
 
     /// Sends an HTTP request with the specified method, endpoint, data, and parameters.
@@ -83,16 +154,20 @@ impl Transport {
         data: Option<Value>,
         params: Option<Value>,
     ) -> Result<String, Box<dyn Error>> {
-        let base_url = &self.config.base_path;
-        let url = base_url.join(endpoint).map_err(|e| {
+        let endpoint = endpoint.trim_start_matches('/');
+        let url = &self.config.base_path.join(endpoint).map_err(|e| {
             error!("Invalid endpoint (shouldn't contain base url): {}. Error: {}", endpoint, e);
             Box::new(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid endpoint")) as Box<dyn std::error::Error>
         })?;
 
-        let mut request_builder = self.client.request(method, url);
+        let mut request_builder = self.client.request(method, url.clone());
 
         if let Some(ref user_agent) = self.config.user_agent {
             request_builder = request_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+        }
+
+        if let Some(ref bearer_token) = self.config.bearer_access_token {
+            request_builder = request_builder.bearer_auth(bearer_token);
         }
 
         if let Some(ref params_value) = params {
@@ -113,16 +188,22 @@ impl Transport {
             }
         }
 
+        debug!("Sending request: {:?}", request_builder);
+        debug!("Request body: {:?}", data);
+        debug!("Request params: {:?}", params);
+        debug!("Request URL: {:?}", url.as_str());
+
         let resp = request_builder.send().await.map_err(|e| {
-	            eprintln!("HTTP request failed: {}", e);
-	            e
-	        })?;
+            log::error!("HTTP request failed: {}", e);
+            e
+        })?;
 
         let status = resp.status();
         let content = resp.text().await.map_err(|e| {
             std::io::Error::new(std::io::ErrorKind::InvalidData, format!("Failed to read response text: {}", e))
         })?;
 
+        debug!("Response status: {}", status);
         if status.is_success() {
             Ok(content)
         } else {
