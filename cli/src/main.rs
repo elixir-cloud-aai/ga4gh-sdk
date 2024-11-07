@@ -1,7 +1,7 @@
 use ga4gh_sdk::clients::tes::{Task, TES};
 use ga4gh_sdk::utils::configuration::Configuration;
 use ga4gh_sdk::utils::transport::Transport;
-use ga4gh_sdk::utils::extension::Extension;
+use ga4gh_sdk::utils::extension::InstalledExtension;
 use ga4gh_sdk::clients::ServiceType;
 use ga4gh_sdk::clients::tes::models::ListTasksParams;
 use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
@@ -10,7 +10,7 @@ use ga4gh_sdk::clients::tes::models::TesTask;
 use clap::{arg, Command};
 use std::path::Path;
 use std::error::Error;
-use log::{debug, error};
+use log::{debug, error, info};
 use ga4gh_sdk::utils::expand_path_with_home_dir;
 
 #[tokio::main]
@@ -230,15 +230,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 println!("{}", format_extensions(extensions));
             }
 
-            // if let Some(("add", sub)) = sub.subcommand() {
-            //     let file = sub.value_of("file").unwrap();
-            //     config.extensions_manager.add_extension_record(file)?;
-            // }
+            if let Some(("add", sub)) = sub.subcommand() {
+                let file = sub.value_of("file").unwrap();
+                config.extensions_manager.add_extension(file).await?;
+            }
 
-            // if let Some(("remove", sub)) = sub.subcommand() {
-            //     let name = sub.value_of("name").unwrap();
-            //     println!("Unloading extension: {}", name);
-            // }
+            if let Some(("remove", sub)) = sub.subcommand() {
+                let name = sub.value_of("name").unwrap();
+                config.extensions_manager.remove_extension(name)?;
+            }
 
             // if let Some(("enable", sub)) = sub.subcommand() {
             //     let file = sub.value_of("name").unwrap();
@@ -292,18 +292,18 @@ fn format_tasks_response(response: &TesListTasksResponse) -> String {
 }
 
 
-fn format_extension(extension: &Extension) -> String {
+fn format_extension(extension: &InstalledExtension) -> String {
     format!(
-        "name: \"{}\",\n  version: \"{}\",\n  path: {:?},\n  description: {:?},\n  enabled: {},\n",
+        "name: \"{}\",\n  version: \"{}\",\n",
         extension.name.as_str(),
         extension.version,
-        extension.path.as_ref().map(|s| s.as_str()).unwrap_or("None"),
-        extension.description.as_ref().map(|s| s.as_str()).unwrap_or("None"),
-        extension.enabled,
+        // extension.path.as_ref().map(|s| s.as_str()).unwrap_or("None"),
+        // extension.description.as_ref().map(|s| s.as_str()).unwrap_or("None"),
+        // extension.enabled,
     )
 }
 
-fn format_extensions(extensions: &Vec<Extension>) -> String {
+fn format_extensions(extensions: &Vec<InstalledExtension>) -> String {
     let mut table = String::new();
     let headers = format!("{:<25} {:<15}\n", "Extension Name", "Enabled");
     table.push_str(&headers);
