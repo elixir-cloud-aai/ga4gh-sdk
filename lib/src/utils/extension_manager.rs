@@ -162,34 +162,31 @@ impl ExtensionManager {
         Ok(())
     }
 
-    pub fn enable_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
-        info!("Enabling extension: {}", name);
+    fn update_extension_status(&self, name: &str, enabled: bool) -> Result<(), Box<dyn std::error::Error>> {
+        let status = if enabled { "Enabling" } else { "Disabling" };
+        info!("{} extension: {}", status, name);
+
         let contents = fs::read_to_string(&self.config_path)?;
         let mut extensions_json: Value = serde_json::from_str(&contents)?;
+
         if let Some(extensions) = extensions_json["extensions"].as_array_mut() {
             for extension in extensions.iter_mut() {
                 if extension["name"] == name {
-                    extension["enabled"] = true.into();
+                    extension["enabled"] = enabled.into();
                 }
             }
         }
+
         fs::write(&self.config_path, serde_json::to_string_pretty(&extensions_json)?)?;
         Ok(())
     }
 
+    pub fn enable_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        self.update_extension_status(name, true)
+    }
+
     pub fn disable_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
-        info!("Disabling extension: {}", name);
-        let contents = fs::read_to_string(&self.config_path)?;
-        let mut extensions_json: Value = serde_json::from_str(&contents)?;
-        if let Some(extensions) = extensions_json["extensions"].as_array_mut() {
-            for extension in extensions.iter_mut() {
-                if extension["name"] == name {
-                    extension["enabled"] = false.into();
-                }
-            }
-        }
-        fs::write(&self.config_path, serde_json::to_string_pretty(&extensions_json)?)?;
-        Ok(())
+        self.update_extension_status(name, false)
     }
 }
 
