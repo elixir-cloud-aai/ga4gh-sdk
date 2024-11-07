@@ -96,6 +96,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .arg(arg!(<name> "The name of the extension to unload"))
                         .arg_required_else_help(true),
                 )
+                .subcommand(
+                    Command::new("disable")
+                        .about("Enable an extension")
+                        .arg(arg!(<name> "The name of the extension to unload"))
+                        .arg_required_else_help(true),
+                )
         );
     
     let matches = cmd.clone().get_matches();
@@ -240,10 +246,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 config.extensions_manager.remove_extension(name)?;
             }
 
-            // if let Some(("enable", sub)) = sub.subcommand() {
-            //     let file = sub.value_of("name").unwrap();
-            //     config.extensions_manager.enable_extension(file)?;
-            // }
+            if let Some(("enable", sub)) = sub.subcommand() {
+                let file = sub.value_of("name").unwrap();
+                config.extensions_manager.enable_extension(file)?;
+            }
+
+            if let Some(("disable", sub)) = sub.subcommand() {
+                let file = sub.value_of("name").unwrap();
+                config.extensions_manager.disable_extension(file)?;
+            }
         }
         
         _ => {

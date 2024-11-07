@@ -162,34 +162,45 @@ impl ExtensionManager {
         Ok(())
     }
 
-    pub fn enable_extension(&self, _name: &str) -> Result<(), Box<dyn std::error::Error>> {
-        // info!("Enabling extension: {}", name);
-        // let config_file_path = Configuration::get_config_path(".ga4gh-cli/extensions.json".to_string())?;
+    pub fn enable_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        info!("Enabling extension: {}", name);
+        let contents = fs::read_to_string(&self.config_path)?;
+        let mut extensions_json: Value = serde_json::from_str(&contents)?;
+        if let Some(extensions) = extensions_json["extensions"].as_array_mut() {
+            for extension in extensions.iter_mut() {
+                if extension["name"] == name {
+                    extension["enabled"] = true.into();
+                }
+            }
+        }
+        fs::write(&self.config_path, serde_json::to_string_pretty(&extensions_json)?)?;
 
-        // // Read the existing JSON file
-        // let mut config_json: Value = if config_file_path.exists() {
-        //     let contents = fs::read_to_string(&config_file_path)?;
-        //     serde_json::from_str(&contents)?
-        // } else {
-        //     serde_json::json!({"extensions": {}})
-        // };
-    
-        // // Convert the extensions to a HashMap
-        // let extensions = config_json["extensions"].as_object_mut().ok_or("Invalid JSON format")?;
+        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh-cli/extensions/{}/", name).as_str());
+        if fs::metadata(&extension_folder_path).is_ok() {
+            fs::remove_dir_all(&extension_folder_path)?;
+        }
 
-        // // Check if the extension exists
-        // if !extensions.contains_key(name) {
-        //     warn!("Extension '{}' does not exist in the configuration.", name);
-        //     return Ok(());
-        // }
+        Ok(())
+    }
 
-        // // Enable the extension
-        // extensions[name]["enabled"] = serde_json::Value::Bool(true);
-        // debug!("Enabled extension '{}'.", name);
-    
-        // // Write the updated JSON back to the file
-        // fs::write(config_file_path, serde_json::to_string_pretty(&config_json)?)?;
-    
+    pub fn disable_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        info!("Disabling extension: {}", name);
+        let contents = fs::read_to_string(&self.config_path)?;
+        let mut extensions_json: Value = serde_json::from_str(&contents)?;
+        if let Some(extensions) = extensions_json["extensions"].as_array_mut() {
+            for extension in extensions.iter_mut() {
+                if extension["name"] == name {
+                    extension["enabled"] = false.into();
+                }
+            }
+        }
+        fs::write(&self.config_path, serde_json::to_string_pretty(&extensions_json)?)?;
+
+        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh-cli/extensions/{}/", name).as_str());
+        if fs::metadata(&extension_folder_path).is_ok() {
+            fs::remove_dir_all(&extension_folder_path)?;
+        }
+
         Ok(())
     }
 }
