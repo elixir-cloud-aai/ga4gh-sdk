@@ -1,26 +1,38 @@
 use ga4gh_sdk::clients::tes::{Task, TES};
 use ga4gh_sdk::utils::configuration::Configuration;
 use ga4gh_sdk::utils::transport::Transport;
+use ga4gh_sdk::utils::extension::InstalledExtension;
 use ga4gh_sdk::clients::ServiceType;
 use ga4gh_sdk::clients::tes::models::ListTasksParams;
 use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 use ga4gh_sdk::clients::tes::models::TesState;
 use ga4gh_sdk::clients::tes::models::TesTask;
-use clap::{arg, Command};
+use clap::{arg, Arg, Command};
 use std::path::Path;
 use std::error::Error;
-use log::{debug, error};
+use log::{debug, error, info};
+use ga4gh_sdk::utils::expand_path_with_home_dir;
+use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
-
-    let cmd = Command::new("ga4gh-cli")
-        .bin_name("cli")
+    let cmd = Command::new("GA4GH-CLI")
+        .bin_name("ga4gh-cli")
         .version("0.1.0")
-        .about("CLI to manage tasks")
+        .about("GA4GH-CLI is a versatile command-line interface for GA4GH federated cloud environments, \
+                built on the GA4GH-SDK Rust library. Designed to simplify interactions with core API services, \
+                it currently supports TES, with plans to expand to WES, DRS, TRS, and AAI.\n\
+                Contributors are welcome: https://github.com/elixir-cloud-aai/ga4gh-sdk")
         .subcommand_required(true)
         .arg_required_else_help(true)
+        .arg(
+            Arg::new("verbose")
+                .long("verbose")
+                .takes_value(true)
+                .possible_values(&["info", "error", "debug"])
+                .default_value("info")
+                .help("Sets the level of verbosity"),
+        )
         .subcommand(
             Command::new("tes")
                 .about("TES subcommands")
@@ -63,14 +75,57 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .arg(arg!(<id> "The id of the task which should be cancel"))
                         .arg_required_else_help(true),
                 ),
+        )
+        .subcommand(
+            Command::new("extension")
+                .about("Extension subcommands")
+                .subcommand_required(true)
+                .arg_required_else_help(true)
+                .subcommand(
+                    Command::new("list")
+                        .about("List all extensions"),
+                )
+                .subcommand(
+                    Command::new("add")
+                        .about("Load an extension")
+                        .arg(arg!(<file> "The extension file to load"))
+                        .arg_required_else_help(true),
+                )
+                .subcommand(
+                    Command::new("remove")
+                        .about("Unload an extension")
+                        .arg(arg!(<name> "The name of the extension to unload"))
+                        .arg_required_else_help(true),
+                )
+                .subcommand(
+                    Command::new("enable")
+                        .about("Enable an extension")
+                        .arg(arg!(<name> "The name of the extension to unload"))
+                        .arg_required_else_help(true),
+                )
+                .subcommand(
+                    Command::new("disable")
+                        .about("Enable an extension")
+                        .arg(arg!(<name> "The name of the extension to unload"))
+                        .arg_required_else_help(true),
+                )
         );
-
+    
     let matches = cmd.clone().get_matches();
 
-    match matches.subcommand() {
-        Some(("tes", sub)) => {
-            let config = Configuration::from_file(ServiceType::TES)?;
+    let log_level = matches.value_of("verbose").unwrap_or("info");
+    env::set_var("RUST_LOG", log_level);
+    env_logger::init();
 
+    let service_config_path = expand_path_with_home_dir(".ga4gh-cli/config.json");
+    let extensions_config_path = expand_path_with_home_dir(".ga4gh-cli/extensions.json");
+
+    match matches.subcommand() {
+        Some(("tes", sub)) => {       
+            let config = Configuration::from_file(Some(ServiceType::TES), &service_config_path, &extensions_config_path)?;
+            debug!("main Configuration: {:?}", config);
+            let transport = Transport::new(&config)?;
+                    
             if let Some(("create", sub)) = sub.subcommand() {
                 let task_file = sub.value_of("TASK_FILE")
                     .ok_or_else(|| anyhow::anyhow!("TASK_FILE argument is required"))?;
@@ -88,7 +143,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 };
                 let testask: TesTask = serde_json::from_str(&task_json)
                     .map_err(|e| format!("Failed to parse JSON: {}", e))?;
-
+        
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.create(testask).await;
@@ -157,8 +212,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             if let Some(("status", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
-                let transport = Transport::new(&config);
-                let task = Task::new(id.clone(), transport);
+                let task = Task::new(id.clone(), transport.clone());
                 match task.status().await {
                     Ok(status) => {
                         println!("TASKID: {}", id.clone());
@@ -173,7 +227,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             if let Some(("cancel", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
-                let transport = Transport::new(&config);
                 let task = Task::new(id, transport);
                 match task.cancel().await {
                     Ok(output) => {
@@ -184,6 +237,35 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         return Err(e);
                     }
                 };
+            }
+        }
+
+        Some(("extension", sub)) => {
+            let config = Configuration::from_file(None, &service_config_path, &extensions_config_path)?;
+
+            if let Some(("list", _)) = sub.subcommand() {
+                let extensions = config.extensions_manager.get_extensions();
+                println!("{}", format_extensions(extensions));
+            }
+
+            if let Some(("add", sub)) = sub.subcommand() {
+                let file = sub.value_of("file").unwrap();
+                config.extensions_manager.add_extension(file).await?;
+            }
+
+            if let Some(("remove", sub)) = sub.subcommand() {
+                let name = sub.value_of("name").unwrap();
+                config.extensions_manager.remove_extension(name)?;
+            }
+
+            if let Some(("enable", sub)) = sub.subcommand() {
+                let file = sub.value_of("name").unwrap();
+                config.extensions_manager.enable_extension(file)?;
+            }
+
+            if let Some(("disable", sub)) = sub.subcommand() {
+                let file = sub.value_of("name").unwrap();
+                config.extensions_manager.disable_extension(file)?;
             }
         }
         
@@ -228,6 +310,33 @@ fn format_tasks_response(response: &TesListTasksResponse) -> String {
     table.push_str(&headers);
     for task in &response.tasks {
         table.push_str(&format_task(task));
+    }
+    table
+}
+
+
+fn format_extension(extension: &InstalledExtension) -> String {
+    format!(
+        "name: \"{}\",\n  version: \"{}\",\n",
+        extension.name.as_str(),
+        extension.version,
+        // extension.path.as_ref().map(|s| s.as_str()).unwrap_or("None"),
+        // extension.description.as_ref().map(|s| s.as_str()).unwrap_or("None"),
+        // extension.enabled,
+    )
+}
+
+fn format_extensions(extensions: &Vec<InstalledExtension>) -> String {
+    let mut table = String::new();
+    let headers = format!("{:<25} {:<15}\n", "Extension Name", "Enabled");
+    table.push_str(&headers);
+    for extension in extensions {
+        let row = format!(
+            "{:<25} {:<15}\n",
+            extension.name.as_str(),
+            extension.enabled
+        );
+        table.push_str(&row);
     }
     table
 }

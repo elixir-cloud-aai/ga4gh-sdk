@@ -100,7 +100,7 @@ use serde_json::from_str;
 use serde_json::json;
 use serde::Serialize;
 use serde_json::Value;
-use log::{debug, error};
+use log::{error};
 
 /// Serializes any serializable item into a JSON `Value`.
 ///
@@ -165,7 +165,7 @@ impl Task {
             }
             Err(e) => {
                 let err_msg = format!("HTTP request failed: {}", e);
-                eprintln!("{}", err_msg);
+                error!("{}", err_msg);
                 Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, err_msg)))
             }
         }
@@ -212,7 +212,7 @@ impl TES {
     /// # Returns
     /// - A new `TES` instance, or an error if the initialization fails.
     pub async fn new(config: &Configuration) -> Result<Self, Box<dyn std::error::Error>> {
-        let transport = Transport::new(config);
+        let transport = Transport::new(config)?;
         let service_info = ServiceInfo::new(config)?;
 
         let resp = service_info.get().await;
@@ -260,7 +260,7 @@ impl TES {
         })?;
         let response = self
             .transport
-            .post("/ga4gh/tes/v1/tasks", Some(json!(task)))
+            .post("/tasks", Some(json!(task)))
             .await;
         match response {
             Ok(response_body) => {
@@ -355,7 +355,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tes_create() {
-        let _m = mock("POST", "/ga4gh/tes/v1/tasks")
+        let _m = mock("POST", "/tasks")
             .with_status(200)
             .with_body(r#"{"id": "123"}"#)
             .create();
