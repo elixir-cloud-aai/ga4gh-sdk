@@ -44,7 +44,7 @@ pub struct InstalledExtension {
     #[serde(skip)]
     pub library: Option<Library>,
     #[serde(skip, default)]
-    pub methods: Option<HashMap<String, Vec<ExtensionMethod>>>,
+    pub methods: HashMap<String, Vec<ExtensionMethod>>,
 }
 
 impl InstalledExtension {
@@ -62,7 +62,7 @@ impl InstalledExtension {
         // extension.enabled = config.enabled;
         extension.loaded = false;
         extension.library = None;
-        extension.methods = Some(HashMap::new());
+        extension.methods = HashMap::new();
 
         Ok(extension)
     }
@@ -100,7 +100,7 @@ impl InstalledExtension {
                         debug!("category={}, method={}, symbol_name={}", unified_method_name, internal_method_name, symbol_name);
                         debug!("Getting `{}` function symbol", symbol_name);
                         let symbol: Symbol<ExtensionMethodFunction> = lib.get(symbol_name.as_bytes()).expect("Failed to load symbol");
-                        self.methods.clone().unwrap().entry(unified_method_name.to_string()).or_insert_with(Vec::new).push(ExtensionMethod {
+                        self.methods.entry(unified_method_name.to_string()).or_insert_with(Vec::new).push(ExtensionMethod {
                             extension_name: self.name.clone(),
                             unified_name: unified_method_name.to_string(),
                             internal_name: internal_method_name.to_string(),

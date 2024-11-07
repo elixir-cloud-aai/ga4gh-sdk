@@ -210,13 +210,14 @@ impl Configuration {
                 return Err(format!("Configuration file must contain the requested `{}` configuration", service_type).into());
             }
             let config_json = config_json[service_type.as_str()].clone();
+            println!("config_json: {:?}", config_json); 
 
             serde_json::from_value(config_json)?
         } else {
             Configuration::default()
         };
 
-        config.extensions_manager = ExtensionManager::init(extensions_config_path, config.extensions.take())?;
+        config.extensions_manager = ExtensionManager::init(extensions_config_path, config.extensions.clone())?;
 
         Ok(config)
     }
