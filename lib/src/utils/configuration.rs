@@ -8,19 +8,6 @@ use std::io::Read;
 use std::fs::File;
 use url::Url;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstalledExtension {
-    pub name: String,
-    pub version: String,
-    pub path: String,
-    pub enabled: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstalledExtensions {
-    pub extensions: Vec<InstalledExtension>,
-}
-
 #[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct ServiceExtensionConfiguration {
     #[serde(rename = "name")]
@@ -229,27 +216,7 @@ impl Configuration {
             Configuration::default()
         };
 
-        // Example configuration JSON of the globally installed extensions
-        // {
-        //     "extensions": [
-        //       {
-        //         "name": "/full/path/to/extension-name.ga4gh-sdk-extension.json",
-        //         "enabled": true
-        //       }
-        //     ]
-        // }
-        // Read the configuration file of the globally available extensions
-        debug!("Reading extensions configuration file: {}", extensions_config_path);
-        let mut file = File::open(extensions_config_path)?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
-        let config_json: Value = serde_json::from_str(&contents)?;
-        if !config_json["extensions"].is_array() {
-            return Err("Extensions configuration file must contain an array of extensions".into());
-        }
-
-        let installed_extensions: InstalledExtensions = serde_json::from_value(config_json)?;
-        config.extensions_manager = ExtensionManager::new(installed_extensions.clone(), config.extensions.take())?;
+        config.extensions_manager = ExtensionManager::init(extensions_config_path, config.extensions.take())?;
 
         Ok(config)
     }
