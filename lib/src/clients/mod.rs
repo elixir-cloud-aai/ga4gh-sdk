@@ -1,5 +1,6 @@
 pub mod serviceinfo;
 pub mod tes;
+pub mod wes;
 
 #[derive(Debug)]
 pub enum ServiceType {
@@ -7,6 +8,7 @@ pub enum ServiceType {
     DRS,
     TRS,
     AAI,
+    WES,
 }
 
 impl ServiceType {
@@ -16,6 +18,7 @@ impl ServiceType {
             ServiceType::DRS => "DRS",
             ServiceType::TRS => "TRS",
             ServiceType::AAI => "AAI",
+            ServiceType::WES => "WES",
         }
     }
 }
