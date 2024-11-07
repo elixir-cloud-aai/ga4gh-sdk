@@ -256,10 +256,16 @@ impl Configuration {
 }
 
 impl Default for Configuration {
+    /// Creates a default instance of Configuration.
+    ///
+    /// # Returns
+    ///
+    /// A default instance of Configuration.
+    /// This is used to define a configuration for a server that is running on your localhost
     fn default() -> Self {
         Configuration {
             base_path: Url::parse("https://localhost").unwrap(),
-            user_agent: None,
+            user_agent: Some("GA4GH-SDK/CLI".to_owned()),
             basic_auth: None,
             oauth_access_token: None,
             bearer_access_token: None,
