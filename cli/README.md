@@ -4,7 +4,7 @@ The `ga4gh-cli` is a command line tool that leverages `ga4gh-sdk` library to pro
 
 ## Configuration
 
-The `ga4gh-cli` expects configuration in `~/.ga4gh-cli/config.json` file. 
+The `ga4gh-cli` expects configuration in `~/.ga4gh/config.json` file. 
 
 ### Configuration Example
 
