@@ -107,7 +107,7 @@ impl ExtensionManager {
         }
 
         let extension_lib_filename = crate::utils::extract_filename_from_url(extension.path.as_str()).unwrap();
-        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh-cli/extensions/{}/", extension.name).as_str());
+        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh/extensions/{}/", extension.name).as_str());
         if let Err(e) = fs::create_dir_all(&extension_folder_path) {
             error!("Failed to create directory: {}", e);
         };
@@ -117,7 +117,7 @@ impl ExtensionManager {
         debug!("Downloading extension library from {} to {}", extension.path.as_str(), local_extension_lib_path);
         crate::utils::download_file(&extension.path, local_extension_lib_path.as_str()).await;
 
-        let installed_definition_file_path = expand_path_with_home_dir(format!(".ga4gh-cli/extensions/{}/{}.ga4gh-sdk-extension.json", extension.name, extension.name).as_str());
+        let installed_definition_file_path = expand_path_with_home_dir(format!(".ga4gh/extensions/{}/{}.ga4gh-sdk-extension.json", extension.name, extension.name).as_str());
         let full_definition_file_path = fs::canonicalize(&installed_definition_file_path)?.to_str().unwrap().to_string();
         let new_extension_record = InstalledExtension {
             name: extension.name.clone(),
@@ -148,7 +148,7 @@ impl ExtensionManager {
         }
         fs::write(&self.config_path, serde_json::to_string_pretty(&extensions_json)?)?;
 
-        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh-cli/extensions/{}/", name).as_str());
+        let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh/extensions/{}/", name).as_str());
         if fs::metadata(&extension_folder_path).is_ok() {
             fs::remove_dir_all(&extension_folder_path)?;
         }
