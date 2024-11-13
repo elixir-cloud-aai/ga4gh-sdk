@@ -1,6 +1,6 @@
 use crate::clients::ServiceType;
 use crate::utils::extension_manager::ExtensionManager;
-use log::{debug};
+use log::{debug, error};
 use serde::{Deserialize, Serialize, Serializer, Deserializer};
 use serde::ser::SerializeStruct;
 use serde_json::Value;
@@ -199,18 +199,30 @@ impl Configuration {
         //         }
         //     }
         // }
-       let mut config: Configuration = if !service_type.is_none() {
-            let service_type = service_type.unwrap();
+        let mut config: Configuration = if let Some(service_type) = service_type {
             debug!("Reading service configuration file: {}", service_config_path);
-            let mut file = File::open(service_config_path)?;
+            let file = File::open(service_config_path);
             let mut contents = String::new();
-            file.read_to_string(&mut contents)?;
+        
+            match file {
+                Ok(mut file) => {
+                    if let Err(e) = file.read_to_string(&mut contents) {
+                        error!("Failed to read configuration file: {}", e);
+                        return Err(e.into());
+                    }
+                }
+                Err(_) => {
+                    debug!("Configuration file not found, using default configuration.");
+                    return Ok(Configuration::default());
+                }
+            }
+        
             let config_json: Value = serde_json::from_str(&contents)?;
             if !config_json[service_type.as_str()].is_object() {
                 return Err(format!("Configuration file must contain the requested `{}` configuration", service_type).into());
             }
             let config_json = config_json[service_type.as_str()].clone();
-
+        
             serde_json::from_value(config_json)?
         } else {
             Configuration::default()
