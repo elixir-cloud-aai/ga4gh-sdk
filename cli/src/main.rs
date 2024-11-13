@@ -117,8 +117,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     env::set_var("RUST_LOG", log_level);
     env_logger::init();
 
-    let service_config_path = expand_path_with_home_dir(".ga4gh-cli/config.json");
-    let extensions_config_path = expand_path_with_home_dir(".ga4gh-cli/extensions.json");
+    let service_config_path = expand_path_with_home_dir(".ga4gh/config.json");
+    let extensions_config_path = expand_path_with_home_dir(".ga4gh/extensions.json");
 
     match matches.subcommand() {
         Some(("tes", sub)) => {       
