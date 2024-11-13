@@ -13,6 +13,7 @@ use std::error::Error;
 use log::{debug, error, info};
 use ga4gh_sdk::utils::expand_path_with_home_dir;
 use std::env;
+use std::fs;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -116,6 +117,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let log_level = matches.value_of("verbose").unwrap_or("info");
     env::set_var("RUST_LOG", log_level);
     env_logger::init();
+
+    let config_dir_path = expand_path_with_home_dir(".ga4gh");
+    if !Path::new(config_dir_path.as_str()).exists() {
+        debug!("Creating directory: {}", config_dir_path);
+        if let Err(e) = fs::create_dir_all(&config_dir_path) {
+            error!("Failed to create directory: {}", e);
+        }
+    }
 
     let service_config_path = expand_path_with_home_dir(".ga4gh/config.json");
     let extensions_config_path = expand_path_with_home_dir(".ga4gh/extensions.json");
