@@ -47,7 +47,6 @@ impl ExtensionManager {
         };  
 
         for instaslled_extension in &mut installed_extensions.extensions {
-            // let mut extension = InstalledExtension::from_file(extension_global_config.definition_path.as_str())?;
             if let Some(service_config) = &service_config {
                 instaslled_extension.load(service_config.get_extension_config(&instaslled_extension.name).clone());
             }
@@ -65,21 +64,6 @@ impl ExtensionManager {
     pub fn register_extension(&mut self, extension: InstalledExtension) {
         self.extensions.push(extension);
     }
-
-    // pub fn load_extensions(&mut self) {
-    //     if !self.extensions.is_empty() {
-    //         debug!("Loading extensions");
-    //         for extension in &mut self.extensions {
-    //             extension.load();
-    //         }
-    //     }
-    // }
-
-    // pub fn unload_extensions(&mut self) {
-    //     for extension in &mut self.extensions {
-    //         extension.unload();
-    //     }
-    // }
 
     pub fn lookup_extension_methods(&self, unified_method_name: &str) -> Vec<&ExtensionMethod> {
         debug!("Looking up extension methods for '{}'", unified_method_name);

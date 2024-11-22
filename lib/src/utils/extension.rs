@@ -1,5 +1,3 @@
-// use serde::{Deserialize, Serialize};
-// use std::io::Result;
 use log::{info, debug};
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
@@ -59,7 +57,6 @@ impl InstalledExtension {
         }
         let mut extension: InstalledExtension = serde_json::from_value(json)?;
 
-        // extension.enabled = config.enabled;
         extension.loaded = false;
         extension.library = None;
         extension.methods = HashMap::new();
@@ -87,9 +84,6 @@ impl InstalledExtension {
                     debug!("Getting init function");
                     let init_func: Symbol<ExtensionInitFunction> = lib.get(b"init").expect("Failed to load symbol");
                     debug!("Calling init function to obtain extension methods");
-
-                    // let service_config_json = to_string(&service_config).expect("Failed to serialize service_config");
-                    // let service_config_value: Value = json!(service_config_json);
             
                     let methods = init_func(service_config);
                     debug!("Init function called successfully, methods obtained:");
