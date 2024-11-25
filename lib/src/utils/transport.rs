@@ -2,35 +2,45 @@
 ///
 /// The `Transport` struct is responsible for handling HTTP requests using the `reqwest` crate.
 /// It provides methods for making GET, POST, PUT, and DELETE requests.
+/// It also supports extensible TLS verifier methods for enhanced security.
+///
+/// The `Transport` struct takes a `Configuration` as a parameter, which provides:
+/// - The base path for the API.
+/// - Credentials such as basic authentication, OAuth access tokens, and API keys.
+/// - User agent information.
+/// - Additional configuration details for service extensions.
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust
 /// use crate::ga4gh_sdk::utils::configuration::Configuration;
 /// use crate::ga4gh_sdk::utils::transport::Transport;
+/// use url::Url;
+/// use serde_json::json;
 ///
-/// let config = Configuration::new(url::Url::parse("https://api.example.com").unwrap());
+/// let config = Configuration::new(Url::parse("https://api.example.com").unwrap());
 /// let transport = Transport::new(&config);
 ///
 /// // Make a GET request
 /// async {
-/// let response = transport.get("/users", None).await;
+///     let response = transport.get("/users", None).await;
 /// };
 ///
 /// // Make a POST request
 /// async {
-///     let data = serde_json::json!({"name": "John Doe", "age": 30});
+///     let data = json!({"name": "John Doe", "age": 30});
 ///     let response = transport.post("/users", Some(data)).await;
 /// };
+///
 /// // Make a PUT request
 /// async {
-/// let data = serde_json::json!({"name": "John Doe", "age": 30});
-/// let response = transport.put("/users/1", data).await;
+///     let data = json!({"name": "John Doe", "age": 30});
+///     let response = transport.put("/users/1", data).await;
 /// };
 ///
 /// // Make a DELETE request
 /// async {
-/// let response = transport.delete("/users/1").await;
+///     let response = transport.delete("/users/1").await;
 /// };
 /// ```
 use crate::utils::configuration::Configuration;
@@ -204,6 +214,7 @@ impl Transport {
         })?;
 
         debug!("Response status: {}", status);
+        debug!("Response body: {}", content);
         if status.is_success() {
             Ok(content)
         } else {
