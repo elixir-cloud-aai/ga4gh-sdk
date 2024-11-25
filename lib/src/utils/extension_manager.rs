@@ -42,6 +42,8 @@ use crate::utils::expand_path_with_home_dir;
 use std::io::Read;
 use serde_json::Value;
 use std::collections::HashMap;
+use sha2::{Sha512, Digest};
+use std::fs::File;
 
 type InstalledExtensions = Vec<InstalledExtension>;
 
@@ -173,7 +175,7 @@ impl ExtensionManager {
         if extensions_json.extensions.iter().any(|ext| ext.name == extension.name) {
             warn!("Extension '{}' already exists in the configuration.", extension.name);
             return Ok(());
-        }
+        } 
 
         let extension_lib_filename = crate::utils::extract_filename_from_url(extension.path.as_str()).unwrap();
         let extension_folder_path = expand_path_with_home_dir(format!(".ga4gh/extensions/{}/", extension.name).as_str());
@@ -185,6 +187,20 @@ impl ExtensionManager {
         crate::utils::copy_file_to_folder(extension_file, &extension_folder_path)?;
         debug!("Downloading extension library from {} to {}", extension.path.as_str(), local_extension_lib_path);
         crate::utils::download_file(&extension.path, local_extension_lib_path.as_str()).await;
+
+        // Calculate the checksum of the downloaded file
+        let mut file = File::open(&local_extension_lib_path)?;
+        let mut hasher = Sha512::new();
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer)?;
+        hasher.update(&buffer);
+        let calculated_checksum = format!("{:x}", hasher.finalize());
+
+        if calculated_checksum != extension.checksum {
+            error!("Checksum mismatch for extension '{}'.\nExpected:   {}\nCalculated: {}", extension.name, extension.checksum, calculated_checksum);
+            std::fs::remove_dir_all(&extension_folder_path)?;
+            return Err(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Checksum mismatch")));
+        }
 
         let installed_definition_file_path = expand_path_with_home_dir(format!(".ga4gh/extensions/{}/{}.ga4gh-sdk-extension.json", extension.name, extension.name).as_str());
         let full_definition_file_path = fs::canonicalize(&installed_definition_file_path)?.to_str().unwrap().to_string();
