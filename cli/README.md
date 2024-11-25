@@ -39,6 +39,8 @@ funnel server start --Server.HTTPPort=[available-port]
 
 ### CLI Examples
 
+#### Working with GA4GH Task Execution Service instances
+
 1. To create a new task run the `tes create` command. You can provide task definition json data as text:
 
 ```sh
@@ -102,4 +104,43 @@ ga4gh-cli tes status [TASK-ID]
 
 ```sh
 ga4gh-cli tes cancel [TASK-ID]      
+```
+
+#### Adding an Extension
+
+1. To add an extension, use the following command:
+
+```sh
+ga4gh-cli extension add path/to/extension.json
+```
+
+2. After adding the extension, enable it with this command:
+
+```sh
+ga4gh-cli extension enable [extension-name] 
+```
+
+3. List installed extensions:
+
+```sh
+ga4gh-cli extension list
+```
+
+Example output:
+```
+Extension Name            Enabled        
+confido                   true     
+```
+
+
+4. Disable the extension:
+
+```sh
+ga4gh-cli extension disable [extension-name] 
+```
+
+5. Remove the extension:
+
+```sh
+ga4gh-cli extension remove [extension-name] 
 ```
