@@ -7,7 +7,7 @@ use ga4gh_sdk::clients::tes::models::ListTasksParams;
 use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 use ga4gh_sdk::clients::tes::models::TesState;
 use ga4gh_sdk::clients::tes::models::TesTask;
-use clap::{arg, Arg, Command, SubCommand};
+use clap::{arg, Arg, Command};
 use std::path::Path;
 use std::error::Error;
 use log::{debug, error};
@@ -316,15 +316,6 @@ fn format_tasks_response(response: &TesListTasksResponse) -> String {
         table.push_str(&format_task(task));
     }
     table
-}
-
-
-fn format_extension(extension: &InstalledExtension) -> String {
-    format!(
-        "name: \"{}\",\n  version: \"{}\",\n",
-        extension.name.as_str(),
-        extension.version,
-    )
 }
 
 fn format_extensions(extensions: &Vec<InstalledExtension>) -> String {
