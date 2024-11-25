@@ -90,12 +90,11 @@ impl ExtensionManager {
 
         let mut installed_extensions: ExtensionManager = if contents.is_empty() {
             let default_extensions = ExtensionManager::default();
-            let default_json = serde_json::to_string(&default_extensions)?;
             serde_json::to_writer_pretty(&mut file, &default_extensions)?;
             default_extensions
         } else {
             serde_json::from_str(&contents).unwrap_or_else(|_| ExtensionManager::default())
-        };  
+        };
 
         for instaslled_extension in &mut installed_extensions.extensions {
             if let Some(service_config) = &service_config {
