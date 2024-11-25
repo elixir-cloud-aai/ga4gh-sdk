@@ -49,6 +49,8 @@ pub struct Extension {
     pub version: String,
     /// The file path to the extension.
     pub path: String,
+    /// SHA512 checksum of the extension binary.
+    pub checksum: String,
     /// An optional description of the extension.
     pub description: Option<String>,
 }
