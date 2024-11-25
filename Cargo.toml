@@ -4,10 +4,17 @@ members = [
     "cli",
     "python"
 ]
+resolver = "2"  # Use the edition 2021 resolver
 
 [workspace.package]
-version = "0.1.0"
-authors = ["Aarav Mehta <aarav05mehta@gmail.com>", "Pavel Nikonorov <pavel@genxt.network>", "ELIXIR Cloud & AAI <cloud-service@elixir-europe.org> (ELIXIR Europe)"]
+version = "1.6.0"
+build = "build.rs"
+
+authors = [
+    "Aarav Mehta <aarav05mehta@gmail.com> (Google Summer of Code Contributor)",
+    "Pavel Nikonorov <pavel@genxt.network> (Google Summer of Code Mentor, GENXT)",
+    "ELIXIR Cloud & AAI <cloud-service@elixir-europe.org> (ELIXIR Europe)"
+]
 edition = "2021"
 readme = "./README.md"
 license-file = "LICENSE"

@@ -15,11 +15,13 @@ use ga4gh_sdk::utils::expand_path_with_home_dir;
 use std::env;
 use std::fs;
 
+const VERSION: &str = env!("PACKAGE_VERSION");
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cmd = Command::new("GA4GH-CLI")
         .bin_name("ga4gh-cli")
-        .version("0.1.0")
+        .version(VERSION)
         .about("GA4GH-CLI is a versatile command-line interface for GA4GH federated cloud environments, \
                 built on the GA4GH-SDK Rust library. Designed to simplify interactions with core API services, \
                 it currently supports TES, with plans to expand to WES, DRS, TRS, and AAI.\n\
