@@ -7,10 +7,10 @@ use ga4gh_sdk::clients::tes::models::ListTasksParams;
 use ga4gh_sdk::clients::tes::models::TesListTasksResponse;
 use ga4gh_sdk::clients::tes::models::TesState;
 use ga4gh_sdk::clients::tes::models::TesTask;
-use clap::{arg, Arg, Command};
+use clap::{arg, Arg, Command, SubCommand};
 use std::path::Path;
 use std::error::Error;
-use log::{debug, error, info};
+use log::{debug, error};
 use ga4gh_sdk::utils::expand_path_with_home_dir;
 use std::env;
 use std::fs;
@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             Arg::new("verbose")
                 .long("verbose")
                 .takes_value(true)
-                .possible_values(&["info", "error", "debug"])
+                .possible_values(&["trace", "debug", "info", "warn", "error", "off"])
                 .default_value("info")
                 .help("Sets the level of verbosity"),
         )
@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .about("cancel the task")
                         .arg(arg!(<id> "The id of the task which should be cancel"))
                         .arg_required_else_help(true),
-                ),
+                )
         )
         .subcommand(
             Command::new("extension")
@@ -149,9 +149,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         task_file.to_string()
                     },
                 };
+
                 let testask: TesTask = serde_json::from_str(&task_json)
-                    .map_err(|e| format!("Failed to parse JSON: {}", e))?;
-        
+                    .map_err(|e| format!("Failed to parse GA4GH TES Task JSON: {}", e))?;
+
                 match TES::new(&config).await {
                     Ok(tes) => {
                         let task = tes.create(testask).await?;
@@ -205,17 +206,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             if let Some(("get", sub)) = sub.subcommand() {    
                 let id = sub.value_of("id").unwrap();
                 let view = sub.value_of("view").unwrap();
-
-                match TES::new(&config).await {
-                    Ok(tes) => {
-                        let task = tes.get(view, id).await;
-                        println!("{:?}", task);
-                    },
-                    Err(e) => {
-                        error!("Error creating TES instance: {:?}", e);
-                        return Err(e);
-                    }
-                };
+                let tes = TES::new(&config).await?;
+                let task = tes.get(view, id).await?;
+                let task_pretty_json = serde_json::to_string_pretty(&task).unwrap();
+                println!("{}", task_pretty_json);
             }
 
             if let Some(("status", sub)) = sub.subcommand() {   
@@ -235,7 +229,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             if let Some(("cancel", sub)) = sub.subcommand() {   
                 let id = sub.value_of("id").unwrap().to_string();
-                let task = Task::new(id, transport);
+                let task = Task::new(id, transport.clone());
                 match task.cancel().await {
                     Ok(output) => {
                         println!("STATUS: {:?}", output);
@@ -328,9 +322,6 @@ fn format_extension(extension: &InstalledExtension) -> String {
         "name: \"{}\",\n  version: \"{}\",\n",
         extension.name.as_str(),
         extension.version,
-        // extension.path.as_ref().map(|s| s.as_str()).unwrap_or("None"),
-        // extension.description.as_ref().map(|s| s.as_str()).unwrap_or("None"),
-        // extension.enabled,
     )
 }
 
