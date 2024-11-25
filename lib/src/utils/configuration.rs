@@ -1,3 +1,11 @@
+//! This module defines the configuration structures and implementations for service extensions.
+//!
+//! It includes the following:
+//! 
+//! - `ServiceExtensionConfiguration`: Represents the configuration for a single service extension.
+//! - `ServiceExtensionsConfiguration`: A collection of service extension configurations.
+//! - Methods to retrieve and manage these configurations.
+
 use crate::clients::ServiceType;
 use crate::utils::extension_manager::ExtensionManager;
 use log::{debug, error};
@@ -8,18 +16,52 @@ use std::io::Read;
 use std::fs::File;
 use url::Url;
 
+/// Represents the configuration for a single service extension.
 #[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct ServiceExtensionConfiguration {
+    /// The name of the extension.
     #[serde(rename = "name")]
     pub extension_name: String,
+    
+    /// Indicates whether the extension is required.
     pub required: bool,
+    
+    /// The configuration details for the extension.
     pub configuration: Value,
 }
 
+/// A collection of service extension configurations.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ServiceExtensionsConfiguration(Vec<ServiceExtensionConfiguration>);
 
 impl ServiceExtensionsConfiguration {
+    /// Retrieves the configuration for a specific extension by name.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - A reference to a string that holds the name of the extension.
+    ///
+    /// # Returns
+    ///
+    /// * `&Value` - A reference to the configuration value of the specified extension.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the extension with the specified name is not found.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let service_extensions_config = ServiceExtensionsConfiguration(vec![
+    ///     ServiceExtensionConfig {
+    ///         extension_name: "AttestedTLS-middleware".to_string(),
+    ///         configuration: serde_json::json!({"trusted-repository": "trs://example-registry.org/"}),
+    ///     },
+    /// ]);
+    /// // Considering that "AttestedTLS-middleware" exports "tls-verifier" extension method
+    /// let config = service_extensions_config.get_extension_config(&"tls-verifier".to_string());
+    /// println!("Extension configuration: {:?}", config);
+    /// ```
     pub fn get_extension_config(&self, name: &String) -> &Value {
         &self.0.iter().find(|service_extension_config| service_extension_config.extension_name == *name).unwrap().configuration
     }
@@ -50,6 +92,31 @@ pub struct Configuration {
 }
 
 impl Serialize for Configuration {
+    /// Serializes the `Configuration` struct into a format suitable for storage or transmission.
+    ///
+    /// # Arguments
+    ///
+    /// * `serializer` - The serializer to use for converting the `Configuration` struct into a serializable format.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<S::Ok, S::Error>` - The result of the serialization process.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let config = Configuration {
+    ///     base_path: Url::parse("https://example.com").unwrap(),
+    ///     user_agent: Some("MyApp/1.0".to_string()),
+    ///     basic_auth: None,
+    ///     oauth_access_token: None,
+    ///     bearer_access_token: None,
+    ///     api_key: None,
+    ///     extensions: None,
+    /// };
+    /// let serialized = serde_json::to_string(&config).unwrap();
+    /// println!("Serialized configuration: {}", serialized);
+    /// ```
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -67,6 +134,33 @@ impl Serialize for Configuration {
 }
 
 impl<'de> Deserialize<'de> for Configuration {
+    /// Deserializes the `Configuration` struct from a format suitable for storage or transmission.
+    ///
+    /// # Arguments
+    ///
+    /// * `deserializer` - The deserializer to use for converting the serialized data into a `Configuration` struct.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Self, D::Error>` - The result of the deserialization process.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let serialized = r#"
+    /// {
+    ///     "base_path": "https://example.com",
+    ///     "user_agent": "MyApp/1.0",
+    ///     "basic_auth": null,
+    ///     "oauth_access_token": null,
+    ///     "bearer_access_token": null,
+    ///     "api_key": null,
+    ///     "extensions": null
+    /// }
+    /// "#;
+    /// let config: Configuration = serde_json::from_str(serialized).unwrap();
+    /// println!("Deserialized configuration: {:?}", config);
+    /// ```
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -184,6 +278,31 @@ impl Configuration {
     /// # Errors
     ///
     /// This function will return an error if the configuration file is missing or malformed.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// // Example service configuration JSON
+    /// // {
+    /// //     "TES": {
+    /// //         "base_path": "https://some-host.org/ga4gh/tes/",
+    /// //         "oauth_access_token": "...",
+    /// //         "extensions": {
+    /// //             "name": "extension-name",
+    /// //             "required": true,
+    /// //             "configuration": {
+    /// //                 "extension specific key": "value"
+    /// //             }
+    /// //         }
+    /// //     }
+    /// // }
+    /// let config = Configuration::from_file(
+    ///     Some(ServiceType::TES),
+    ///     &"path/to/service-config.json".to_string(),
+    ///     &"path/to/extensions-config.json".to_string()
+    /// )?;
+    /// println!("Loaded configuration: {:?}", config);
+    /// ```
     pub fn from_file(service_type: Option<ServiceType>, service_config_path: &String, extensions_config_path: &String) -> Result<Self, Box<dyn std::error::Error>> {
         // Example service configuration JSON
         // {
@@ -194,7 +313,7 @@ impl Configuration {
         //             "name": "extension-name",
         //             "required": true,
         //             "configuration": {
-        //                 "extension specific-key": "value"
+        //                 "extension specific key": "value"
         //             }
         //         }
         //     }

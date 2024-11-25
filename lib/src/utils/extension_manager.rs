@@ -1,3 +1,36 @@
+//! Extension Manager
+//!
+//! This module provides functionality to manage extensions, including adding, removing, enabling, and disabling extensions.
+//! It handles reading and writing the extensions configuration file, managing the extension files and directories, and updating the status of extensions.
+//!
+//! # Example
+//!
+//! ```rust
+//! use extension_manager::ExtensionManager;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let mut manager = ExtensionManager::default();
+//!
+//!     // Initialize the manager with a configuration path
+//!     manager.init("/path/to/config.json")?;
+//!
+//!     // Add a new extension
+//!     manager.add_extension("/path/to/extension-file.json").await?;
+//!
+//!     // Enable an extension by name
+//!     manager.enable_extension("extension-name")?;
+//!
+//!     // Disable an extension by name
+//!     manager.disable_extension("extension-name")?;
+//!
+//!     // Remove an extension by name
+//!     manager.remove_extension("extension-name")?;
+//!
+//!     Ok(())
+//! }
+//! ```
+
 use crate::utils::extension::Extension;
 use crate::utils::extension::ExtensionMethod;
 use crate::utils::extension::InstalledExtension;
@@ -20,18 +53,34 @@ pub struct ExtensionManager {
 }
 
 impl ExtensionManager {
+    /// Initializes the `ExtensionManager` by reading the extensions configuration file.
+    ///
+    /// This method reads the configuration file specified by `extensions_config_path` and initializes
+    /// the extensions. It also optionally takes a `ServiceExtensionsConfiguration` for additional
+    /// configuration of the extensions.
+    ///
+    /// Example configuration JSON of the globally installed extensions:
+    /// ```json
+    /// {
+    ///     "extensions": [
+    ///       {
+    ///         "name": "extension-name",
+    ///         "path": "/full/path/to/extension-name.ga4gh-sdk-extension.json",
+    ///         "enabled": true
+    ///       }
+    ///     ]
+    /// }
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    /// * `extensions_config_path` - A string slice that holds the path to the extensions configuration file.
+    /// * `service_config` - An optional `ServiceExtensionsConfiguration` that provides additional configuration for the extensions.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Self, Box<dyn Error>>` - Returns an `ExtensionManager` instance on success, or an error on failure.
     pub fn init(extensions_config_path: &str, service_config: Option<ServiceExtensionsConfiguration>) -> Result<Self, Box<dyn Error>> {
-        // Example configuration JSON of the globally installed extensions
-        // {
-        //     "extensions": [
-        //       {
-        //         "name": "extension-name",
-        //         "path": "/full/path/to/extension-name.ga4gh-sdk-extension.json",
-        //         "enabled": true
-        //       }
-        //     ]
-        // }
-        // Read the configuration file of the globally available extensions
         debug!("Reading extensions configuration file: {}", extensions_config_path);
         let mut file = crate::utils::open_or_create_file(extensions_config_path)?;
         let mut contents = String::new();
@@ -57,14 +106,33 @@ impl ExtensionManager {
         Ok(installed_extensions)
     }
 
+    /// Returns a reference to the list of installed extensions.
+    ///
+    /// # Returns
+    ///
+    /// * `&Vec<InstalledExtension>` - A reference to the vector of installed extensions.
     pub fn get_extensions(&self) -> &Vec<InstalledExtension> {
         &self.extensions
     }
 
+    /// Registers a new extension by adding it to the list of installed extensions.
+    ///
+    /// # Arguments
+    ///
+    /// * `extension` - An `InstalledExtension` instance to be added to the list of installed extensions.
     pub fn register_extension(&mut self, extension: InstalledExtension) {
         self.extensions.push(extension);
     }
 
+    /// Looks up extension methods by their unified method name.
+    ///
+    /// # Arguments
+    ///
+    /// * `unified_method_name` - A string slice that holds the unified method name to look up.
+    ///
+    /// # Returns
+    ///
+    /// * `Vec<&ExtensionMethod>` - A vector of references to `ExtensionMethod` instances that match the unified method name.
     pub fn lookup_extension_methods(&self, unified_method_name: &str) -> Vec<&ExtensionMethod> {
         debug!("Looking up extension methods for '{}'", unified_method_name);
         self.extensions
@@ -75,6 +143,23 @@ impl ExtensionManager {
             .collect::<Vec<_>>()
     }
 
+    /// Adds a new extension by reading the extension file, copying it to the appropriate directory,
+    /// and updating the extensions configuration file.
+    ///
+    /// # Arguments
+    ///
+    /// * `extension_file` - A string slice that holds the path to the extension file to be added.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), Box<dyn std::error::Error>>` - Returns `Ok(())` on success, or an error on failure.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let manager = ExtensionManager::default();
+    /// manager.add_extension("/path/to/extension-file.json").await?;
+    /// ```
     pub async fn add_extension(&self, extension_file: &str) -> Result<(), Box<dyn std::error::Error>> {
         info!("Adding extension record for file: {}", extension_file);
         let extension: Extension = Extension::from_file(extension_file)?;
@@ -123,6 +208,22 @@ impl ExtensionManager {
         Ok(())
     }
 
+    /// Removes an extension by its name from the configuration file and deletes its directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - A string slice that holds the name of the extension to be removed.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), Box<dyn std::error::Error>>` - Returns `Ok(())` on success, or an error on failure.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let manager = ExtensionManager::default();
+    /// manager.remove_extension("extension-name")?;
+    /// ```
     pub fn remove_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
         info!("Removing extension: {}", name);
         let contents = fs::read_to_string(&self.config_path)?;
@@ -140,6 +241,16 @@ impl ExtensionManager {
         Ok(())
     }
 
+    /// Updates the status of an extension (enabled or disabled) in the configuration file.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - A string slice that holds the name of the extension to be updated.
+    /// * `enabled` - A boolean indicating whether the extension should be enabled (`true`) or disabled (`false`).
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), Box<dyn std::error::Error>>` - Returns `Ok(())` on success, or an error on failure.
     fn update_extension_status(&self, name: &str, enabled: bool) -> Result<(), Box<dyn std::error::Error>> {
         let status = if enabled { "Enabling" } else { "Disabling" };
         info!("{} extension: {}", status, name);
@@ -159,10 +270,42 @@ impl ExtensionManager {
         Ok(())
     }
 
+    /// Enables an extension by its name in the configuration file.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - A string slice that holds the name of the extension to be enabled.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), Box<dyn std::error::Error>>` - Returns `Ok(())` on success, or an error on failure.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let manager = ExtensionManager::default();
+    /// manager.enable_extension("extension-name")?;
+    /// ```
     pub fn enable_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.update_extension_status(name, true)
     }
 
+    /// Disables an extension by its name in the configuration file.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - A string slice that holds the name of the extension to be disabled.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), Box<dyn std::error::Error>>` - Returns `Ok(())` on success, or an error on failure.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let manager = ExtensionManager::default();
+    /// manager.disable_extension("extension-name")?;
+    /// ```
     pub fn disable_extension(&self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.update_extension_status(name, false)
     }
