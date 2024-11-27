@@ -1,0 +1,15 @@
+{
+    "extension-schema-version": "0.2.0",
+    "name": "confido",
+    "version": "0.5.1",
+    "path": "https://genxt.blob.core.windows.net/confido/libconfido-0.5.1.so",
+    "checksum": "d7fa97a1b0084c3058c11385701e67eba5b6d0f4c9b74f378fc5596c331d76dc56546f50270830e133a97d58635d412ff746b4966ef79780b2c6a103a85f3351",
+    "description": "confidential computing middleware extension providing attested-TLS support for the GA4GH-SDK",
+    "vendor": "GENXT LTD",
+    "vendorUrls": [
+        "https://genxt.network",
+        "https://genxt.ai"
+    ],
+    "vendorEmail": "info@genxt.network",
+    "vendorAddress": "AB318, Biodata Innovation Centre, Wellcome Trust Genome Campus, Hinxton, Cambridgeshire, United Kingdom, CB101DR"
+}
