@@ -3,7 +3,7 @@ from GA4GH import Configuration, ServiceType, TES
 
 try:
     config = Configuration("https://localhost") # legacy parameter, will be removed
-    config.from_file(ServiceType.TES) # load configuration from ~/.ga4gh-cli/config.json
+    config.from_file(ServiceType.TES) # load configuration from ~/.ga4gh/config.json
 
     TES = TES(config)
     print("Creating task...", end="")

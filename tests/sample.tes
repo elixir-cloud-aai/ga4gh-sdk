@@ -1,16 +1,23 @@
 {
-  "name": "Hello world",
-  "inputs": [{
-    "url": "s3://funnel-bucket/hello.txt",
-    "path": "/inputs/hello.txt"
-  }],
-  "outputs": [{
-    "url": "s3://funnel-bucket/output.txt",
-    "path": "/outputs/stdout"
-  }],
-  "executors": [{
-      "image": "alpine",
-      "command": ["cat", "/inputs/hello.txt"],
-      "stdout": "/outputs/stdout"
-  }]
+    "name": "Example GA4GH TES Task Definition File: Allele Frequency Pipeline",
+    "resources": {
+        "disk_gb": 1
+    },
+    "volumes": [
+        "/data/"
+    ],
+    "inputs": [{
+        "url": "s3://1000genomes/release/20130502/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz",
+        "path": "/data/genotypes.vcf.gz",
+        "type": "FILE"
+    }],
+    "executors": [{
+        "image": "genxnetwork/allele-frequency-pipeline:latest",
+        "command": ["python3", "pipeline.py", "/data/genotypes.vcf.gz", "/data/allele-frequencies.txt"]
+    }],
+    "outputs": [{
+        "url": "s3://biohackcloud/allele-frequencies.txt",
+        "path": "/data/allele-frequencies.txt",
+        "type": "FILE"
+    }]
 }
