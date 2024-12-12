@@ -30,7 +30,7 @@ pub struct TesTaskLog {
     pub end_time: Option<String>,
     /// Information about all output files. Directory outputs are flattened into separate items.
     #[serde(rename = "outputs")]
-    pub outputs: Vec<models::TesOutputFileLog>,
+    pub outputs: Option<Vec<models::TesOutputFileLog>>,
     /// System logs are any logs the system decides are relevant, which are not tied directly to an Executor process. Content is implementation specific: format, size, etc.  System logs may be collected here to provide convenient access.  For example, the system may include the name of the host where the task is executing, an error message that caused a SYSTEM_ERROR state (e.g. disk is full), etc.  System logs are only included in the FULL task view.
     #[serde(rename = "system_logs", skip_serializing_if = "Option::is_none")]
     pub system_logs: Option<Vec<String>>,
@@ -38,13 +38,13 @@ pub struct TesTaskLog {
 
 impl TesTaskLog {
     /// TaskLog describes logging information related to a Task.
-    pub fn new(logs: Vec<models::TesExecutorLog>, outputs: Vec<models::TesOutputFileLog>) -> TesTaskLog {
+    pub fn new() -> TesTaskLog {
         TesTaskLog {
-            logs,
+            logs: Vec::new(),
             metadata: None,
             start_time: None,
             end_time: None,
-            outputs,
+            outputs: None,
             system_logs: None,
         }
     }

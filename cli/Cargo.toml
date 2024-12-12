@@ -7,7 +7,6 @@ authors.workspace = true
 edition.workspace = true
 license-file.workspace = true
 readme = "README.md"
-build = "build.rs"
 
 [dependencies]
 ga4gh-lib = { path = "../lib" }

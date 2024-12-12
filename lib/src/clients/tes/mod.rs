@@ -182,15 +182,15 @@ impl Task {
         let url = format!("/tasks/{}:cancel", id);
         let response = self.transport.post(&url, None).await;
         match response {
-	    Ok(resp_str) => {
-	        let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
-	        match parsed_json {
-	            Ok(json) => Ok(json),
-	            Err(e) => Err(format!("Failed to parse JSON: {}", e).into()),
-	        }
-	    }
-	    Err(e) => Err(format!("HTTP request failed: {}", e).into()),
-	}
+            Ok(resp_str) => {
+                let parsed_json = serde_json::from_str::<serde_json::Value>(&resp_str);
+                match parsed_json {
+                    Ok(json) => Ok(json),
+                    Err(e) => Err(format!("Failed to parse JSON: {}", e).into()),
+                }
+            }
+            Err(e) => Err(format!("HTTP request failed: {}", e).into()),
+        }
     }
 }
 
@@ -302,7 +302,7 @@ impl TES {
 
         match response {
             Ok(resp_str) => {
-                let task: TesTask = from_str(&resp_str)?;
+                let task: TesTask = serde_json::from_str(&resp_str)?;
                 Ok(task)
             }
             Err(e) => Err(e),

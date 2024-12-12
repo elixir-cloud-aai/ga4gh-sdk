@@ -30,18 +30,18 @@ pub struct TesExecutorLog {
     pub stderr: Option<String>,
     /// Exit code.
     #[serde(rename = "exit_code")]
-    pub exit_code: i32,
+    pub exit_code: Option<i32>,
 }
 
 impl TesExecutorLog {
     /// ExecutorLog describes logging information related to an Executor.
-    pub fn new(exit_code: i32) -> TesExecutorLog {
+    pub fn new() -> TesExecutorLog {
         TesExecutorLog {
             start_time: None,
             end_time: None,
             stdout: None,
             stderr: None,
-            exit_code,
+            exit_code: None,
         }
     }
 }

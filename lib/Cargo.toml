@@ -1,8 +1,6 @@
 [package]
 name = "ga4gh-lib"
-description = """
-Generic SDK and CLI for GA4GH API services
-"""
+description = "Generic SDK and CLI for GA4GH API services"
 repository = "https://github.com/elixir-cloud-aai/ga4gh-sdk/tree/main/lib"
 version.workspace = true
 authors.workspace = true

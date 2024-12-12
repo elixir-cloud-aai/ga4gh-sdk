@@ -54,7 +54,7 @@ pub struct TesTask {
 
 impl TesTask {
     /// Task describes an instance of a task.
-    pub fn new(executors: Vec<models::TesExecutor>) -> TesTask {
+    pub fn new() -> TesTask {
         TesTask {
             id: None,
             state: None,
