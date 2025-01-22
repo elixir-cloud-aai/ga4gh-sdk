@@ -10,12 +10,6 @@ pub struct PyConfiguration {
 
 #[pymethods]
 impl PyConfiguration {
-    #[new]
-    pub fn new(base_path: String) -> PyResult<Self> {
-        let config = Configuration::new(Url::parse(&base_path).unwrap());
-        Ok(PyConfiguration { inner: config })
-    }
-
     pub fn set_base_path(&mut self, base_path: String) -> PyResult<()> {
         self.inner.set_base_path(Url::parse(&base_path).unwrap());
         Ok(())
@@ -24,10 +18,13 @@ impl PyConfiguration {
     pub fn get_base_path(&mut self) -> String {
         self.inner.base_path.to_string()
     }
-    
-    pub fn from_file(&mut self, service_type: PyServiceType) -> PyResult<()> {
-        self.inner = Configuration::from_file(service_type.into())
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyException, _>(format!("{}", e)))?;
+
+    pub fn from_file(&mut self, service_type: PyServiceType, service_config_path: String, extensions_config_path: String) -> PyResult<()> {
+        self.inner = Configuration::from_file(
+            service_type.into(),
+            &service_config_path,
+            &extensions_config_path
+        ).map_err(|e| PyErr::new::<pyo3::exceptions::PyException, _>(format!("{}", e)))?;
         Ok(())
     }
 }

@@ -11,7 +11,9 @@ pub struct PyTransport {
 impl PyTransport {
     #[new]
     pub fn new(py_config: &PyConfiguration) -> PyResult<Self> {
-        let transport = Transport::new(&py_config.inner);
+        let transport = Transport::new(&py_config.inner).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to create Transport: {}", e))
+        })?;
         Ok(PyTransport { inner: transport })
     }
 
