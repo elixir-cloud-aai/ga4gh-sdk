@@ -77,6 +77,12 @@ impl From<PyServiceType> for ServiceType {
     }
 }
 
+impl From<PyServiceType> for Option<ServiceType> {
+    fn from(py_service_type: PyServiceType) -> Self {
+        Some(ServiceType::from(py_service_type))
+    }
+}
+
 #[pymodule]
 fn GA4GH(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyServiceType>()?;

@@ -15,7 +15,7 @@ use ga4gh_sdk::utils::expand_path_with_home_dir;
 use std::env;
 use std::fs;
 
-const VERSION: &str = env!("PACKAGE_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
