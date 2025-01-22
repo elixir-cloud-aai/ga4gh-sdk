@@ -134,9 +134,14 @@ impl Transport {
         }
 
         let mut client = ClientBuilder::new();
-        for certificate in certificates {
-            info!("Adding aTLS certificate as trusted to the HTTP client");
-            client = client.add_root_certificate(certificate).danger_accept_invalid_certs(true);
+        if !certificates.is_empty() {
+            client = client.tls_built_in_root_certs(false);
+            for certificate in certificates {
+                info!("Adding aTLS certificate as trusted to the HTTP client");
+                client = client
+                    .add_root_certificate(certificate)
+                    .danger_accept_invalid_certs(true);
+            }
         }
 
         Ok(Transport {
